@@ -14,9 +14,10 @@
 logging:
   level:
     ROOT: DEBUG
-    com.traders.portfolioService.appconfig: DEBUG
-    org.springframework.boot.actuate: DEBUG
-    com.traders.portfolioService: DEBUG
+    com.traders.exchange.appconfig: Info
+    org.springframework.boot.actuate: Info
+    com.traders.exchange: Info
+    com.traders.common: Info
 
 
 management:
@@ -28,6 +29,16 @@ management:
       probability: 1.0 # report 100% of traces
 
 spring:
+  kafka:
+    bootstrap-servers: bootstrap.hellotraders-01.us-central1.managedkafka.true-oasis-439517-g0.cloud.goog:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: hellotraders-01
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
   devtools:
     restart:
       enabled: true
@@ -46,10 +57,12 @@ spring:
         database-name: hello_traders
 
     consul:
+      #enabled: false
       config:
         fail-fast: false # if not in "prod" profile, do not force to use Spring Cloud Config
         format: yaml
         profile-separator: '-'
+        enabled: false
       discovery:
         register-health-check: true
         healthCheckPath: /management/health
@@ -62,31 +75,36 @@ spring:
             method: GET
             path: /management/health
         enabled: true
-        prefer-ip-address: false
-        hostname: portfolioservice-dot-true-oasis-439517-g0.el.r.appspot.com
-        scheme: https
-        port: 443
+        prefer-ip-address: true
+#        hostname: exchange-service-dot-true-oasis-439517-g0.el.r.appspot.com
+        scheme: http
+#        port: 443
         tags:
           - profile=${spring.profiles.active}
           - version='@project.version@'
           - git-version=${git.commit.id.describe:}
           - git-commit=${git.commit.id.abbrev:}
           - git-branch=${git.branch:}
-      host: consul-585407576955.us-central1.run.app
-      port: 443
-#      host: localhost
-#      port: 8500
-      scheme: https
+#      host: consul-585407576955.us-central1.run.app
+#      port: 443
+      host: localhost
+      port: 8500
+      scheme: http
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    #url: jdbc:mysql://localhost:3306/hello_traders?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-    url: jdbc:mysql://google/hello_traders?cloudSqlInstance=true-oasis-439517-g0:us-central1:hello-traders&socketFactory=com.google.cloud.sql.mysql.SocketFactory&user=root&password=root
+    url: jdbc:mysql://localhost:3306/hello_traders?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    #url: jdbc:mysql://google/hello_traders?cloudSqlInstance=true-oasis-439517-g0:us-central1:hello-traders&socketFactory=com.google.cloud.sql.mysql.SocketFactory&user=root&password=root
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       poolName: Hikari
       auto-commit: false
+      maximum-pool-size: 70
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 250000
+      leak-detection-threshold: 350000
       data-source-properties:
         cachePrepStmts: true
         prepStmtCacheSize: 250
@@ -104,7 +122,8 @@ spring:
 #      initialize-schema: always
 
 server:
-  port: ${PORT:8080}
+  address: 0.0.0.0
+  port: ${PORT:8088}
   # make sure requests the proxy uri instead of the server one
   forward-headers-strategy: native
 
@@ -112,11 +131,48 @@ server:
 # ===================================================================
 
 config:
+  kiteConfig:
+    apiKey: x07vtchwb1r0up2b
+    apiSecret: e76jl3cj6xl1hlteu0cdvn5qvk559qrm
+    supportedExchange: NFO,BFO,MCX
+    instrumentLoadDelta: 8
+    tickerBatch : 3000
+  dhanConfig:
+    apiKey: 1105449365 #later encrypt both param
+    apiSecret: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzM2MjM5NTQzLCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiaHR0cDovL2xvY2FsaG9zdDo4MDg4L2FwaS9yZW5ld3Nlc3Npb24iLCJkaGFuQ2xpZW50SWQiOiIxMTA1NDQ5MzY1In0.bgqjlUnH2WO0aAdrqmE3chgc0YShIAD5LmSeaF-3OZ6ogm_TkYUDPE2ZMs47rQxrZVA3uQFsdqelEy6knelOqw
+    supportedExchange: NFO,BFO,MCX
+    instrumentLoadDelta: 8
+    tickerBatch: 3000
+    instrumentUrl: https://images.dhan.co/api-data/api-scrip-master.csv
+    active: true
+    apiCredentials:
+      - AEO069ay17EvdiStUU2UKTP51uVj6LNwYE1vjVjPYzC4PgZDRoFTVAWVJpqE7c3VTCW/PRyS5g1VimjWTXOMTnVxD8cazyetWAvqbGUv9rJK97Fesy88L+f/AT525OY3Lf1tkhgFPQx8R5ACQlk/jn0tjIlssBpOPhtoBnA9hMqBAUyqSt+3TPGOM2F1XfOl5P64v3Hkqv4RU8VixDAi0W09sv0FtEnwFWjek/YJ8h+EkIWCKHnFIqlPibKtheCN4AYnYRBMTBrObLjPo2aam8INnjhV6CZCPmusZEea+bPeDOtGr1WUJCRstmVg/QxZe/q9Zq/JBa/9AspOGpBAAroc17n+q9K5rPJjpV+FmLU0WpqqT4g5eXYJOE21TFah2aRRpIKljjf/hQ8UwLjn/cVWqlRjyXMTqizy3e+9FnjVcRG4ZMydwNwz9OWkC7Yokekt+T3PzFJVV2+ab78sEQ==
+    allowedConnection: 5
+    allowedDaysRange: 120
+    allowedHttpRetry: 2
+    allowedHttpRetryDelay: 800
+  stockConfig:
+    batchSize: 80
+    topicName: stockprice
+
+
+  redis:
+    session:
+      ttl: 300
   cache: # Cache configuration
     redis: # Redis configuration
       expiration: -1 # By default objects stay 1 hour (in seconds) in the cache
-      server: redis://default:HelloTraders%40123@redis-16705.c244.us-east-1-2.ec2.redns.redis-cloud.com:16705
+      #server: redis://default:HelloTraders%40123@redis-16705.c244.us-east-1-2.ec2.redns.redis-cloud.com:16705
+      server: redis://localhost:6379
       cluster: false
+
+  customPool:
+    minThreads: 10
+    scaleCount: 90
+  customConnectionPool:
+    minIdle : 5
+    scaleCount : 90
+    connTimeout : 20000
 #        server: redis://localhost:6379,redis://localhost:16379,redis://localhost:26379
 #        cluster: true
 #  # CORS is disabled by default on microservices, as you should access them through a gateway.

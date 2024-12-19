@@ -88,7 +88,7 @@ eclipse {
 defaultTasks "bootRun"
 
 springBoot {
-	mainClass = "com.traders.portfolio.HellotradersPortfolioService"
+	mainClass = "com.traders.exchange.HellotradersExchangeService"
 }
 
 gitProperties {
@@ -181,6 +181,14 @@ dependencies {
 
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
+	implementation 'com.zerodhatech.kiteconnect:kiteconnect:3.4.0'
+
+	implementation 'org.springframework.kafka:spring-kafka:3.3.0'
+
+	implementation 'org.springframework:spring-websocket:6.2.0'
+
+
+	implementation 'com.opencsv:opencsv:5.9'
 
 
 
@@ -196,9 +204,7 @@ task cleanResources(type: Delete) {
 	delete "build/resources"
 }
 
-//bootJar {
-//	mainClass = 'com.traders.portfolio.HellotradersPortfolioService'
-//}
+
 task deployAppEngine(type: Exec) {
 	group = 'deployment'
 	description = 'Deploys the application to Google App Engine'
@@ -218,7 +224,7 @@ appengine {
 jar{
 	manifest {
 		attributes(
-				'Main-Class': 'com.traders.portfolio.HellotradersPortfolioService'
+				'Main-Class': 'com.traders.exchange.HellotradersExchangeService'
 		)
 	}
 }

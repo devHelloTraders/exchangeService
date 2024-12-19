@@ -15,6 +15,16 @@
 ---
 # Conditionally disable springdoc on missing api-docs profile
 spring:
+  kafka:
+    bootstrap-servers: bootstrap.hellotraders.us-central1.managedkafka.true-oasis-439517-g0.cloud.goog:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: hellotraders-01
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
   config:
     activate:
       on-profile: '!api-docs'
@@ -116,13 +126,13 @@ management:
 
 spring:
   application:
-    name: portfolioservice
+    name: exchangeService
   cloud:
     consul:
       discovery:
         healthCheckPath: /management/health
-        instanceId: portfolioservice
-        service-name: portfolioservice
+        instanceId: exchangeService
+        service-name: exchangeService
       config:
         watch:
           enabled: false
@@ -185,15 +195,15 @@ spring:
           authorities-claim-name: auth
   task:
     execution:
-      thread-name-prefix: portfolioservice-task-
+      thread-name-prefix: exchangeService-task-
       pool:
-        core-size: 2
-        max-size: 50
+        core-size: 10
+        max-size: 80
         queue-capacity: 10000
     scheduling:
-      thread-name-prefix: portfolioservice-scheduling-
+      thread-name-prefix: exchangeService-scheduling-
       pool:
-        size: 2
+        size: 20
   thymeleaf:
     mode: HTML
   output:
@@ -219,7 +229,7 @@ info:
 
 config:
   clientApp:
-    name: 'portfolioservice'
+    name: 'exchangeService'
   # By default CORS is disabled. Uncomment to enable.
   # cors:
   #   allowed-origins: "http://localhost:8100,http://localhost:9000"
@@ -228,12 +238,12 @@ config:
   #   allow-credentials: true
   #   max-age: 1800
   mail:
-    from: portfolioservice@localhost
+    from: exchangeService@localhost
   api-docs:
     default-include-pattern: /api/**
     management-include-pattern: /management/**
-    title: portfolioservice API
-    description: portfolioservice API documentation
+    title: exchangeService API
+    description: exchangeService API documentation
     version: 0.0.1
     terms-of-service-url:
     contact-name:
@@ -247,4 +257,4 @@ config:
 
 # application:
 gateway:
-  url: https://gateway-dot-true-oasis-439517-g0.el.r.appspot.com/
+  url: http://localhost:8080/
