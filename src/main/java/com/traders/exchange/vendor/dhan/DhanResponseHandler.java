@@ -1,6 +1,7 @@
 package com.traders.exchange.vendor.dhan;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.config.SpringContextUtil;
 import com.traders.exchange.service.RedisService;
 import lombok.SneakyThrows;
@@ -32,10 +33,8 @@ public class DhanResponseHandler {
     }
     @SneakyThrows
     public static List<MarketQuotes> handleRestResponse(String responseBody){
-        ObjectMapper objectMapper = new ObjectMapper();
-        MarketQuotesResponse response = objectMapper.readValue(responseBody, MarketQuotesResponse.class);
-        Map<String, Map<String, MarketQuotes>> data = response.getData();
 
+       var data = getExchangeData(responseBody);
         List<MarketQuotes> marketQuotesList = new ArrayList<>();
 
         data.values().forEach(instruments ->
@@ -45,5 +44,11 @@ public class DhanResponseHandler {
                 })
         );
         return marketQuotesList;
+    }
+    @SneakyThrows
+    public static Map<String, Map<String, MarketQuotes>> getExchangeData(String responseBody){
+        ObjectMapper objectMapper = new ObjectMapper();
+        MarketQuotesResponse response = objectMapper.readValue(responseBody, MarketQuotesResponse.class);
+        return response.getData();
     }
 }

@@ -2,6 +2,7 @@ package com.traders.exchange.vendor.dhan;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.traders.common.model.MarketQuotes;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

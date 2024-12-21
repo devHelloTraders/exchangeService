@@ -56,9 +56,11 @@ public class ConfigProperties  extends com.traders.common.properties.ConfigPrope
         private boolean isActive;
         private String instrumentUrl;
         private int allowedConnection;
+        private int reservedConnection;
         private int allowedDaysRange;
         private int allowedHttpRetry;
         private int allowedHttpRetryDelay;
+        private int restBatchSize;
         private List<String> apiCredentials = new ArrayList<>();
     }
 

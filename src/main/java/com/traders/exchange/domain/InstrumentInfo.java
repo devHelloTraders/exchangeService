@@ -4,4 +4,6 @@ public interface InstrumentInfo {
     Long getInstrumentToken();
     String getExchange();
     String getTradingSymbol();
+
+
 }

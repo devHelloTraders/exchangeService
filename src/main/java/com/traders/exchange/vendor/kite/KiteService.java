@@ -1,14 +1,13 @@
 package com.traders.exchange.vendor.kite;
 
 import com.google.common.base.Strings;
+import com.traders.common.model.MarketQuotes;
 import com.traders.common.utils.EncryptionUtil;
 import com.traders.exchange.domain.InstrumentInfo;
 import com.traders.exchange.exception.AttentionAlertException;
 import com.traders.exchange.properties.ConfigProperties;
 import com.traders.exchange.service.RedisService;
-import com.traders.exchange.service.StockService;
 import com.traders.exchange.vendor.contract.ExchangeClient;
-import com.traders.exchange.vendor.dhan.MarketQuotes;
 import com.traders.exchange.vendor.dto.InstrumentDTO;
 import com.zerodhatech.kiteconnect.KiteConnect;
 import com.zerodhatech.kiteconnect.kitehttp.exceptions.KiteException;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
@@ -207,5 +207,7 @@ public class KiteService implements ExchangeClient {
     public List<MarketQuotes> getMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
         return new ArrayList<>();
     }
-
+    public Map<String, Map<String, MarketQuotes>> getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
+        return null;
+    }
 }

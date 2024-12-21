@@ -1,31 +1,17 @@
 package com.traders.exchange.vendor.dhan;
 
-import com.google.common.base.Strings;
+import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.domain.InstrumentInfo;
-import com.traders.exchange.exception.AttentionAlertException;
 import com.traders.exchange.properties.ConfigProperties;
-import com.traders.exchange.service.RedisService;
-import com.traders.exchange.service.StockService;
 import com.traders.exchange.vendor.contract.*;
 import com.traders.exchange.vendor.dto.InstrumentDTO;
-import com.traders.exchange.vendor.dto.Tick;
-import com.traders.exchange.vendor.exception.VendorException;
-import com.zerodhatech.models.Instrument;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.supercsv.cellprocessor.ift.CellProcessor;
-import org.supercsv.io.CsvBeanReader;
-import org.supercsv.io.ICsvBeanReader;
-import org.supercsv.prefs.CsvPreference;
 
-import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -101,4 +87,7 @@ public class DhanClient implements ExchangeClient {
        return dhanService.getMarketQuoteViaRest(instrumentInfos);
     }
 
+    public Map<String, Map<String, MarketQuotes>> getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
+        return dhanService.getAllMarketQuoteViaRest(instrumentInfos);
+    }
 }

@@ -45,4 +45,15 @@ public interface StockRepository extends JpaRepository<Stock,Long> {
     List<InstrumentInfo> findByIsActiveTrueAndExpiryIsNullOrExpiryBetween(@Param("now") Date now, @Param("futureDate") Date futureDate);
 
 
+    @Query("""
+        SELECT DISTINCT s
+        FROM Stock s
+        WHERE s.id IN (
+            SELECT ps.stock.id FROM PortfolioStock ps
+            UNION
+            SELECT ws.stock.id FROM WatchlistStock ws
+        )
+    """)
+    List<InstrumentInfo> findAllUniqueWatchStocks();
+
 }

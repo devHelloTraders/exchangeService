@@ -10,20 +10,13 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.client.ConnectionManagerSupport;
 import org.springframework.web.socket.client.WebSocketConnectionManager;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.*;
+import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -37,12 +30,14 @@ public class DhanConnectionRegistry {
     private final ConfigProperties configProperties;
     private final BiFunction<Integer, List<InstrumentInfo>, Map<Long, List<InstrumentInfo>>> instrumentBatcher;
     private final ApiCredentials apiCredentials;
+    private final List<DhanConnectionMetadata> poolSelector = new ArrayList<>();
+    private final Set<Long> allSubscriptions = new HashSet<>();
 
     public DhanConnectionRegistry(ConfigProperties configProperties, ApiCredentials apiCredentials) {
         this.configProperties = configProperties;
         this.apiCredentials = apiCredentials;
         this.instrumentBatcher = ((totalAccounts, instrumentInfo) -> {
-            int factor = Math.max(1,instrumentInfo.size()/(configProperties.getDhanConfig().getAllowedConnection() * totalAccounts));
+            int factor = Math.max(1, instrumentInfo.size() / (configProperties.getDhanConfig().getAllowedConnection() * totalAccounts));
             return IntStream.range(0, instrumentInfo.size())
                     .boxed()
                     .collect(Collectors.groupingBy(
@@ -95,7 +90,6 @@ public class DhanConnectionRegistry {
                 .forEach(ConnectionManagerSupport::start);
     }
 
-    @Scheduled(cron = "0 02 12 * * *")
     public void startAllConnection() {
         connectionPool.forEach(this::startConnection);
     }
@@ -118,7 +112,9 @@ public class DhanConnectionRegistry {
     }
 
 
-    public void addConnections(List<InstrumentInfo> instrumentInfo) {
+    public void addConnections(List<InstrumentInfo> instrumentInfoList) {
+        int maxAllowedSubscriptions = configProperties.getDhanConfig().getReservedConnection() * configProperties.getDhanConfig().getTickerBatch();
+        var instrumentInfo = instrumentInfoList.stream().limit( maxAllowedSubscriptions).toList();
         var instrumentBatch = instrumentBatcher.apply(apiCredentials.getCredentials().size(), instrumentInfo);
         IntStream.range(0, apiCredentials.getCredentials().size()).forEach(credentialIndex -> {
             var credentials = apiCredentials.getCredentials().get(credentialIndex);
@@ -129,21 +125,22 @@ public class DhanConnectionRegistry {
                 return;
             }
 
-            createConnectionsForCredential(url, instrumentBatch, credentialIndex);
+            createConnectionsForCredential(url, instrumentBatch);
             urlList.add(url);
         });
     }
 
-    private void createConnectionsForCredential(String url, Map<Long, List<InstrumentInfo>> instrumentBatch, int credentialIndex) {
+    private void createConnectionsForCredential(String url, Map<Long, List<InstrumentInfo>> instrumentBatch) {
         IntStream.range(0, configProperties.getDhanConfig().getAllowedConnection()).forEach(connectionIndex -> {
             int connectionId = connectionPool.size();
-            if(instrumentBatch.get((long) connectionId) ==null){
-                return;
-            }
+            var connectionMetadata =  DhanConnectionMetadata.of(connectionId,addForSubscriptionTracking);
+
+            instrumentBatch.putIfAbsent((long) connectionId, new ArrayList<>());
+            connectionMetadata.getInstrumentDetails().putAll(instrumentDetailsCreator.apply(instrumentBatch.get((long) connectionId)));
             var handler = new DhanWebSocketHandler(
                     connectionId,
-                    instrumentDetailsCreator.apply(instrumentBatch.get((long) connectionId)),
-                    retryConnectionConsumer()
+                    retryConnectionConsumer(),
+                    connectionMetadata
             );
 
             var connectionManager = WebSocketConnectionManagerBuilder.builder()
@@ -151,7 +148,8 @@ public class DhanConnectionRegistry {
                     .withHandler(handler)
                     .withUrl(url)
                     .build();
-
+            poolSelector.add(connectionMetadata);
+            connectionMetadata.addConnectionManager(connectionManager);
             connectionPool.put(connectionId, connectionManager);
         });
     }
@@ -169,8 +167,9 @@ public class DhanConnectionRegistry {
                 .build();
 
     }
+
     @SneakyThrows
-    private RequestBody getRequestBody(List<InstrumentInfo> instrumentInfos){
+    private RequestBody getRequestBody(List<InstrumentInfo> instrumentInfos) {
         Map<String, List<Long>> groupedByExchange = instrumentInfos.stream()
                 .collect(Collectors.groupingBy(
                         InstrumentInfo::getExchange,
@@ -185,5 +184,61 @@ public class DhanConnectionRegistry {
         return RequestBody.create(
                 mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode), MediaType.parse("application/json"));
     }
+
+    private DhanConnectionMetadata getMostUnderutilizedConnection(List<DhanConnectionMetadata> connections) {
+        return connections.stream()
+                .peek(DhanConnectionMetadata::keepAlive)
+                .min(Comparator.comparingDouble(DhanConnectionMetadata::calculateWeight))
+                .orElse(null);
+    }
+
+//    public void updateSubscription(List<InstrumentInfo> subscribeList,List<InstrumentInfo> unsubscribeList){
+//        var metadata =getMostUnderutilizedConnection(poolSelector);
+//        if(metadata==null)
+//            return;
+//        Map<Long, InstrumentInfo> subscribeInstrumentBatch =null;
+//        Map<Long, InstrumentInfo> unsubscribeInstrumentBatch= null;
+//        if(subscribeList!=null && !subscribeList.isEmpty()) {
+//            subscribeInstrumentBatch = instrumentDetailsCreator.apply(subscribeList);
+//            allSubscriptions.forEach(subscribeInstrumentBatch.keySet()::remove);
+//            metadata.getInstrumentDetails().putAll(subscribeInstrumentBatch);
+//        }
+//        if(unsubscribeList!=null && !unsubscribeList.isEmpty()) {
+//            unsubscribeInstrumentBatch = instrumentDetailsCreator.apply(unsubscribeList);
+//            unsubscribeInstrumentBatch.keySet().retainAll(allSubscriptions);
+//            metadata.getInstrumentDetails().keySet().removeAll(unsubscribeInstrumentBatch.keySet());
+//        }
+//
+//        metadata.doAction(subscribeInstrumentBatch,unsubscribeInstrumentBatch);
+//    }
+
+    private final BiConsumer<Boolean,List<Long>> addForSubscriptionTracking =(isSubscribe, instruments)->{
+        if(isSubscribe)
+            allSubscriptions.addAll(instruments);
+        else
+            allSubscriptions.removeAll(instruments);
+    };
+
+    public void updateSubscription(List<InstrumentInfo> subscribeList, List<InstrumentInfo> unsubscribeList) {
+        var metadata = getMostUnderutilizedConnection(poolSelector);
+        if (metadata == null) return;
+
+        Set<Long> allSubscriptionIds = new HashSet<>(allSubscriptions);
+        Map<Long, InstrumentInfo> subscribeInstrumentBatch =null;
+        if (subscribeList != null && !subscribeList.isEmpty()) {
+            subscribeInstrumentBatch = instrumentDetailsCreator.apply(subscribeList);
+            subscribeInstrumentBatch.keySet().removeIf(allSubscriptionIds::contains);
+            metadata.getInstrumentDetails().putAll(subscribeInstrumentBatch);
+        }
+        Map<Long, InstrumentInfo> unsubscribeInstrumentBatch =null;
+        if (unsubscribeList != null && !unsubscribeList.isEmpty()) {
+            unsubscribeInstrumentBatch = instrumentDetailsCreator.apply(unsubscribeList);
+            unsubscribeInstrumentBatch.keySet().retainAll(allSubscriptionIds);
+            metadata.getInstrumentDetails().keySet().removeAll(unsubscribeInstrumentBatch.keySet());
+        }
+
+        metadata.doAction(subscribeInstrumentBatch, unsubscribeInstrumentBatch);
+    }
+
 
 }

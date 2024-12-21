@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -26,37 +27,57 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
 
     private static final int MAX_INSTRUMENTS_PER_REQUEST = 100;
     private static final int REQUEST_CODE = 21;
-
-    private final Map<Long, InstrumentInfo> instrumentDetails;
+    private static final int UNSUBSCRIBE_REQUEST_CODE = 22;
     private final int connectionId;
     private final Consumer<String> retryFunction;
-    public DhanWebSocketHandler(int connectionId, Map<Long, InstrumentInfo> instrumentDetails, Consumer<String> retryFunction) {
-        this.instrumentDetails = instrumentDetails;
+    private final DhanConnectionMetadata metadata;
+    public DhanWebSocketHandler(int connectionId,  Consumer<String> retryFunction, DhanConnectionMetadata metadata) {
         this.connectionId = connectionId;
         this.retryFunction = retryFunction;
+        this.metadata = metadata;
+        metadata.setSubscribeFunction(this::sendSubscriptionMessages);
+        metadata.setUnSubscribeFunction(this::sendUnSubscriptionMessages);
+
     }
 
 
     @Override
     public void afterConnectionEstablished(@NotNull WebSocketSession session) throws Exception {
+        metadata.addSession(session);
         log.info("connection established sending subscription");
-        sendSubscriptionMessages(session);
+        sendSubscriptionMessages(session,new ArrayList<>(metadata.getInstrumentDetails().entrySet()));
+
     }
 
-    private void sendSubscriptionMessages(WebSocketSession session)  {
-        List<Map.Entry<Long, InstrumentInfo>> instrumentList = new ArrayList<>(instrumentDetails.entrySet());
+    private void sendSubscriptionMessages(WebSocketSession session,  List<Map.Entry<Long, InstrumentInfo>> instrumentList)  {
         AtomicInteger batchNo = new AtomicInteger();
         IntStream.range(0, (instrumentList.size() + MAX_INSTRUMENTS_PER_REQUEST - 1) / MAX_INSTRUMENTS_PER_REQUEST) // Calculate number of batches
                 .mapToObj(i -> instrumentList.subList(i * MAX_INSTRUMENTS_PER_REQUEST, Math.min((i + 1) * MAX_INSTRUMENTS_PER_REQUEST, instrumentList.size())))
                 .forEach(batch -> {
-                    subscribeMessage(session,batch);
+                    metadata.addSubscription(batch.size());
+                    metadata.getConnectionTracker().accept(true,batch.stream().map(Map.Entry::getKey).toList());
+                    subscribeMessage(REQUEST_CODE,session,batch);
                     log.info("Sent subscription request for batch: {}, total subscription for connection id : {} is {}",
                             batchNo.incrementAndGet(), connectionId, (batchNo.get() * MAX_INSTRUMENTS_PER_REQUEST));
                 });
 
     }
 
-    private String createSubscriptionMessage(List<Map.Entry<Long, InstrumentInfo>> instruments) {
+    private void sendUnSubscriptionMessages(WebSocketSession session,List<Map.Entry<Long, InstrumentInfo>> instrumentList)  {
+        AtomicInteger batchNo = new AtomicInteger();
+        IntStream.range(0, (instrumentList.size() + MAX_INSTRUMENTS_PER_REQUEST - 1) / MAX_INSTRUMENTS_PER_REQUEST) // Calculate number of batches
+                .mapToObj(i -> instrumentList.subList(i * MAX_INSTRUMENTS_PER_REQUEST, Math.min((i + 1) * MAX_INSTRUMENTS_PER_REQUEST, instrumentList.size())))
+                .forEach(batch -> {
+                    metadata.addSubscription(-batch.size());
+                    metadata.getConnectionTracker().accept(false,batch.stream().map(Map.Entry::getKey).toList());
+                    subscribeMessage(UNSUBSCRIBE_REQUEST_CODE,session,batch);
+                    log.info("Sent subscription request for batch: {}, total subscription for connection id : {} is {}",
+                            batchNo.incrementAndGet(), connectionId, (batchNo.get() * MAX_INSTRUMENTS_PER_REQUEST));
+                });
+
+    }
+
+    private String createSubscriptionMessage(List<Map.Entry<Long, InstrumentInfo>> instruments,Integer requestCode) {
         String instrumentListJson = instruments.stream()
                 .map(Map.Entry::getValue)
                 .map(instrument -> String.format("{\"ExchangeSegment\": \"%s\", \"SecurityId\": \"%s\"}",
@@ -66,11 +87,11 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
 
         return """
                 {"RequestCode": %d,"InstrumentCount": %d,"InstrumentList": [%s]}"""
-                .formatted(REQUEST_CODE, instruments.size(), instrumentListJson);
+                .formatted(requestCode, instruments.size(), instrumentListJson);
     }
     @SneakyThrows
-    private void subscribeMessage(WebSocketSession session, List<Map.Entry<Long, InstrumentInfo>> batch){
-        String subscriptionMessage = createSubscriptionMessage(batch);
+    private void subscribeMessage(Integer requestCode,WebSocketSession session, List<Map.Entry<Long, InstrumentInfo>> batch){
+        String subscriptionMessage = createSubscriptionMessage(batch, requestCode);
         //String subscriptionMessage ="{\"RequestCode\": 21,\"InstrumentCount\": 5,\"InstrumentList\": [{\"ExchangeSegment\": \"NSE_EQ\", \"SecurityId\": \"1333\"},{\"ExchangeSegment\": \"BSE_EQ\", \"SecurityId\": \"532540\"},{\"ExchangeSegment\": \"NSE_EQ\", \"SecurityId\": \"19237\"},{\"ExchangeSegment\": \"IDX_I\", \"SecurityId\": \"25\"},{\"ExchangeSegment\": \"NSE_FNO\", \"SecurityId\": \"43972\"}]}";
         session.sendMessage(new TextMessage(subscriptionMessage));
     }
@@ -124,5 +145,6 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
     @Override
     public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status)  {
         log.info("Connection closed. {}",status);
+        metadata.removeSession();
     }
 }

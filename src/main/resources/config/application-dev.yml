@@ -142,15 +142,17 @@ config:
     apiSecret: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzM2MjM5NTQzLCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiaHR0cDovL2xvY2FsaG9zdDo4MDg4L2FwaS9yZW5ld3Nlc3Npb24iLCJkaGFuQ2xpZW50SWQiOiIxMTA1NDQ5MzY1In0.bgqjlUnH2WO0aAdrqmE3chgc0YShIAD5LmSeaF-3OZ6ogm_TkYUDPE2ZMs47rQxrZVA3uQFsdqelEy6knelOqw
     supportedExchange: NFO,BFO,MCX
     instrumentLoadDelta: 8
-    tickerBatch: 3000
+    tickerBatch: 5000
     instrumentUrl: https://images.dhan.co/api-data/api-scrip-master.csv
     active: true
     apiCredentials:
       - AEO069ay17EvdiStUU2UKTP51uVj6LNwYE1vjVjPYzC4PgZDRoFTVAWVJpqE7c3VTCW/PRyS5g1VimjWTXOMTnVxD8cazyetWAvqbGUv9rJK97Fesy88L+f/AT525OY3Lf1tkhgFPQx8R5ACQlk/jn0tjIlssBpOPhtoBnA9hMqBAUyqSt+3TPGOM2F1XfOl5P64v3Hkqv4RU8VixDAi0W09sv0FtEnwFWjek/YJ8h+EkIWCKHnFIqlPibKtheCN4AYnYRBMTBrObLjPo2aam8INnjhV6CZCPmusZEea+bPeDOtGr1WUJCRstmVg/QxZe/q9Zq/JBa/9AspOGpBAAroc17n+q9K5rPJjpV+FmLU0WpqqT4g5eXYJOE21TFah2aRRpIKljjf/hQ8UwLjn/cVWqlRjyXMTqizy3e+9FnjVcRG4ZMydwNwz9OWkC7Yokekt+T3PzFJVV2+ab78sEQ==
     allowedConnection: 5
+    reservedConnection: 2
     allowedDaysRange: 120
     allowedHttpRetry: 2
-    allowedHttpRetryDelay: 800
+    allowedHttpRetryDelay: 1000
+    restBatchSize: 1000
   stockConfig:
     batchSize: 80
     topicName: stockprice

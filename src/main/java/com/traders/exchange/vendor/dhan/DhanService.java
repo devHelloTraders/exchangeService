@@ -2,6 +2,7 @@ package com.traders.exchange.vendor.dhan;
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import com.traders.common.model.MarketQuotes;
 import com.traders.common.utils.CsvUtils;
 import com.traders.exchange.config.AsyncConfiguration;
 import com.traders.exchange.domain.InstrumentInfo;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -66,12 +68,39 @@ public class DhanService {
 
 
     public void createWebSocketConnectionPool(List<InstrumentInfo> instrumentInfo) {
-        registry.addConnections(instrumentInfo.stream().limit(25000).toList());
+        registry.addConnections(instrumentInfo);
         registry.startAllConnection();
     }
 
     public void stopWebSocket(){
         registry.stopAllConnection();
+    }
+
+    private InstrumentInfo createInstrumentInfo(DhanRequest.InstrumentDetails instrument) {
+        return new InstrumentInfo() {
+            @Override
+            public Long getInstrumentToken() {
+                return instrument.getInstrumentId();
+            }
+
+            @Override
+            public String getExchange() {
+                return instrument.getExchange();
+            }
+
+            @Override
+            public String getTradingSymbol() {
+                return instrument.getInstrumentName();
+            }
+        };
+    }
+
+    public void subscribeInstrument(DhanRequest request){
+        List<InstrumentInfo> subscribeInstrumentDetails =request.getSubscribeInstrumentDetailsList()
+                .stream().map(this::createInstrumentInfo).toList();
+        List<InstrumentInfo> unSubscribeInstrumentDetails =request.getUnSubscribeInstrumentDetailsList()
+                .stream().map(this::createInstrumentInfo).toList();
+        registry.updateSubscription(subscribeInstrumentDetails,unSubscribeInstrumentDetails);
     }
 
     @SneakyThrows
@@ -82,6 +111,16 @@ public class DhanService {
             responseJson=response.body().string();
         }
         return DhanResponseHandler.handleRestResponse(responseJson);
+    }
+
+    @SneakyThrows
+    public Map<String, Map<String, MarketQuotes>>  getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
+        String responseJson  ="";
+        try (Response response = this.client.newCall(registry.getDhanAPIRestRequest(instrumentInfos)).execute()) {
+            assert response.body() != null;
+            responseJson=response.body().string();
+        }
+        return DhanResponseHandler.getExchangeData(responseJson);
     }
 
 

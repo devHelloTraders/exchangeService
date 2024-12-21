@@ -1,7 +1,7 @@
 package com.traders.exchange.service.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.traders.exchange.vendor.dhan.MarketQuotes;
+import com.traders.common.model.MarketQuotes;
 import lombok.Getter;
 import lombok.Setter;
 

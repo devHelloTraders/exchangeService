@@ -1,6 +1,7 @@
 package com.traders.exchange.service;
 
 import com.google.common.base.Strings;
+import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.config.AsyncConfiguration;
 import com.traders.exchange.config.HikariConfiguration;
 import com.traders.exchange.domain.InstrumentInfo;
@@ -12,7 +13,6 @@ import com.traders.exchange.repository.StockRepository;
 import com.traders.exchange.service.dto.StockDTO;
 import com.traders.exchange.vendor.contract.ExchangeClient;
 import com.traders.exchange.vendor.dhan.DhanExchangeResolver;
-import com.traders.exchange.vendor.dhan.MarketQuotes;
 import com.traders.exchange.vendor.dto.InstrumentDTO;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -122,13 +122,19 @@ public class StockService {
 
         stockRepository.saveAll(stocks);
     }
+//    @Transactional
+//    public List<InstrumentInfo> getAllTokens(){
+//        Date now = new Date();
+//        LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+//        LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
+//        return stockRepository.findByIsActiveTrueAndExpiryIsNullOrExpiryBetween(now,Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()));
+//    }
+
     @Transactional
     public List<InstrumentInfo> getAllTokens(){
-        Date now = new Date();
-        LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
-        return stockRepository.findByIsActiveTrueAndExpiryIsNullOrExpiryBetween(now,Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()));
+        return stockRepository.findAllUniqueWatchStocks();
     }
+
 
     @Transactional
     public Page<StockDTO> getAllTokensByExchange(String exchage, Pageable pageable){
