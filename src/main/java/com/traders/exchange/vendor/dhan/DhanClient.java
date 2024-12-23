@@ -1,7 +1,8 @@
 package com.traders.exchange.vendor.dhan;
 
+import com.traders.common.model.InstrumentInfo;
+import com.traders.common.model.MarkestDetailsRequest;
 import com.traders.common.model.MarketQuotes;
-import com.traders.exchange.domain.InstrumentInfo;
 import com.traders.exchange.properties.ConfigProperties;
 import com.traders.exchange.vendor.contract.*;
 import com.traders.exchange.vendor.dto.InstrumentDTO;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -87,7 +89,15 @@ public class DhanClient implements ExchangeClient {
        return dhanService.getMarketQuoteViaRest(instrumentInfos);
     }
 
-    public Map<String, Map<String, MarketQuotes>> getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
-        return dhanService.getAllMarketQuoteViaRest(instrumentInfos);
+    public Map<String, MarketQuotes> getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
+        Map<String, MarketQuotes> quotesMap = new HashMap<>();
+        var marketQuotes =  dhanService.getAllMarketQuoteViaRest(instrumentInfos);
+        marketQuotes.keySet().forEach(quote->{
+            quotesMap.putAll(marketQuotes.get(quote));
+        });
+        return quotesMap;
+    }
+    public void subscribeInstrument(MarkestDetailsRequest request){
+        dhanService.subscribeInstrument(request);
     }
 }

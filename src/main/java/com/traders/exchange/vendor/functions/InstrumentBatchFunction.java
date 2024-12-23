@@ -1,6 +1,6 @@
 package com.traders.exchange.vendor.functions;
 
-import com.traders.exchange.domain.InstrumentInfo;
+import com.traders.common.model.InstrumentInfo;
 
 import java.util.List;
 import java.util.Map;

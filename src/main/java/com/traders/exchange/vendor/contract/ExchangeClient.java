@@ -1,9 +1,10 @@
 package com.traders.exchange.vendor.contract;
 
 import com.google.common.base.Strings;
+import com.traders.common.model.InstrumentInfo;
+import com.traders.common.model.MarkestDetailsRequest;
 import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.config.SpringContextUtil;
-import com.traders.exchange.domain.InstrumentInfo;
 import com.traders.exchange.exception.AttentionAlertException;
 import com.traders.exchange.properties.ConfigProperties;
 import com.traders.exchange.service.RedisService;
@@ -66,5 +67,9 @@ public interface ExchangeClient {
     boolean isActiveClient();
 
     List<MarketQuotes> getMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos);
-    Map<String, Map<String, MarketQuotes>> getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos);
+    Map<String, MarketQuotes> getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos);
+
+    default void subscribeInstrument(MarkestDetailsRequest request){
+
+    }
 }

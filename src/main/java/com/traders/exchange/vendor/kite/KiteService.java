@@ -1,9 +1,9 @@
 package com.traders.exchange.vendor.kite;
 
 import com.google.common.base.Strings;
+import com.traders.common.model.InstrumentInfo;
 import com.traders.common.model.MarketQuotes;
 import com.traders.common.utils.EncryptionUtil;
-import com.traders.exchange.domain.InstrumentInfo;
 import com.traders.exchange.exception.AttentionAlertException;
 import com.traders.exchange.properties.ConfigProperties;
 import com.traders.exchange.service.RedisService;
@@ -207,7 +207,7 @@ public class KiteService implements ExchangeClient {
     public List<MarketQuotes> getMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
         return new ArrayList<>();
     }
-    public Map<String, Map<String, MarketQuotes>> getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
+    public Map<String, MarketQuotes> getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
         return null;
     }
 }

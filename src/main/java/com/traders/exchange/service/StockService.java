@@ -1,19 +1,22 @@
 package com.traders.exchange.service;
 
 import com.google.common.base.Strings;
+import com.traders.common.model.InstrumentInfo;
+import com.traders.common.model.MarkestDetailsRequest;
 import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.config.AsyncConfiguration;
 import com.traders.exchange.config.HikariConfiguration;
-import com.traders.exchange.domain.InstrumentInfo;
 import com.traders.exchange.domain.Stock;
 import com.traders.exchange.exception.AttentionAlertException;
 import com.traders.exchange.exception.BadRequestAlertException;
 import com.traders.exchange.properties.ConfigProperties;
 import com.traders.exchange.repository.StockRepository;
 import com.traders.exchange.service.dto.StockDTO;
+import com.traders.exchange.service.dto.UnsubscribeInstrument;
 import com.traders.exchange.vendor.contract.ExchangeClient;
 import com.traders.exchange.vendor.dhan.DhanExchangeResolver;
 import com.traders.exchange.vendor.dto.InstrumentDTO;
+import com.traders.exchange.vendor.functions.GeneralFunctions;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -26,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
@@ -37,7 +41,7 @@ public class StockService {
     private final StockRepository stockRepository;
     //private final MapperS
     private final Converter<InstrumentDTO, Stock> instrumentStockConverter;
-    private  final ConfigProperties configProperties;
+    private final ConfigProperties configProperties;
     private final AsyncConfiguration asyncConfiguration;
     private final HikariConfiguration hikariConfiguration;
     private final RedisService redisService;
@@ -64,12 +68,7 @@ public class StockService {
         this.exchangeClient = exchangeClient;
     }
     static int temp =0;
-    @Transactional
-    public List<Stock> getStocks(List<Long> stockIds){
-        if(stockIds == null || stockIds.isEmpty())
-            throw new BadRequestAlertException("Invalid Stock id details", "Stock Service service", "Not a valid stock details");
-        return stockRepository.findAllByIdIn(stockIds);
-    }
+
     @Transactional
     public void upsertStocks(List<InstrumentDTO> instruments){
         if(instruments ==null || instruments.isEmpty()){
@@ -108,9 +107,7 @@ public class StockService {
     }
 
     private void saveToRedis(List<Stock> stocks){
-        stocks.forEach(stock->{
-            redisService.saveToCache("stockNameCache",String.valueOf(stock.getInstrumentToken()),stock.getTradingSymbol());
-        });
+        stocks.forEach(stock-> redisService.saveToCache("stockNameCache",String.valueOf(stock.getInstrumentToken()),stock.getTradingSymbol()));
 
     }
     public void saveStocks(List<Stock> stocks){
@@ -137,60 +134,64 @@ public class StockService {
 
 
     @Transactional
-    public Page<StockDTO> getAllTokensByExchange(String exchage, Pageable pageable){
+    public Page<Stock> getAllTokensByExchange(String exchage, Pageable pageable){
         Date now = new Date();
         LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
         return stockRepository.findByIsActiveTrueAndExchangeAndExpiryIsNullOrExpiryBetween(exchage,now,
-                Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),pageable).map(this::mapStockToDto);
+                Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),pageable);
     }
 
     @Transactional
-    public Page<StockDTO> searchTokensByExchange(String exchage,String searchName, Pageable pageable){
+    public Page<Stock> searchTokensByExchange(String exchage,String searchName, Pageable pageable){
         Date now = new Date();
         LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
        if (Strings.isNullOrEmpty(exchage))
             return stockRepository.findByIsActiveTrueAndSymbolAnsExpiryIsNullOrExpiryBetween(searchName,now,
-                Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),pageable).map(this::mapStockToDto);
+                Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),pageable);
 
        return stockRepository.findByIsActiveTrueAndExchangeAndSymbolAnsExpiryIsNullOrExpiryBetween(searchName,exchage,now,
-                Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),pageable).map(this::mapStockToDto);
+                Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),pageable);
     }
 
+    public List<StockDTO> getStockDtoList(List<Stock> stockList, List<UnsubscribeInstrument> unsubscribeInstruments){
+        MarkestDetailsRequest request =new MarkestDetailsRequest();
+        stockList.forEach(stock-> request.addInstrument(MarkestDetailsRequest.InstrumentDetails.of(stock.getInstrumentToken(),stock.getExchange(),stock.getName())));
+        if(unsubscribeInstruments !=null)
+            unsubscribeInstruments.forEach(unsub-> request.removeInstrument(MarkestDetailsRequest.InstrumentDetails.of(unsub.getInstrumentId(),unsub.getExchange(),"")));
 
-    private StockDTO mapStockToDto (Stock stock){
-        StockDTO stockDTO = new StockDTO();
-        mapper.map(stock,stockDTO);
-        MarketQuotes quotes = (MarketQuotes) redisService.getMarketQuotes(String.valueOf(stock.getInstrumentToken())).orElseGet(()->getQuotesFromMarket(stock));
-        stockDTO.setQuotes(quotes);
-        stockDTO.updatePrice();
-        return stockDTO;
+        var marketResponse = getQuotesFromMarketList(GeneralFunctions.getSubscribeInstrumentInfos(request.getSubscribeInstrumentDetailsList()));
+        exchangeClient.subscribeInstrument(request);
+        return stockList.stream().map(stock->{
+            StockDTO stockDTO = new StockDTO();
+            mapper.map(stock,stockDTO);
+            MarketQuotes quotes = marketResponse.get(String.valueOf(stock.getInstrumentToken()));
+            stockDTO.setQuotes(quotes);
+            stockDTO.updatePrice();
+            return stockDTO;
+        }).toList();
+
     }
 
-    private MarketQuotes getQuotesFromMarket(Stock stock){
-        var marketQuotes = exchangeClient.getMarketQuoteViaRest(List.of(new InstrumentInfo(){
-
-
-            @Override
-            public Long getInstrumentToken() {
-                return stock.getInstrumentToken();
-            }
-
-            @Override
-            public String getExchange() {
-                return stock.getExchange();
-            }
-
-            @Override
-            public String getTradingSymbol() {
-                return stock.getTradingSymbol();
-            }
-        }));
+    public Map<String,MarketQuotes> getQuotesFromMarketList(List<InstrumentInfo> instrumentInfos){
+        var marketQuotes = exchangeClient.getAllMarketQuoteViaRest(instrumentInfos);
         if(marketQuotes == null || marketQuotes.isEmpty()){
             throw new BadRequestAlertException("Invalid Stock Request","StockService","Please pass Correct stock id");
         }
-        return marketQuotes.getFirst();
+        return marketQuotes;
     }
 
+    public List<StockDTO> mapQuotesToDTO(List<StockDTO> stockList){
+        MarkestDetailsRequest request =new MarkestDetailsRequest();
+        stockList.forEach(stock-> request.addInstrument(MarkestDetailsRequest.InstrumentDetails.of(stock.getInstrumentToken(),stock.getExchange(),stock.getTradingSymbol())));
+        exchangeClient.subscribeInstrument(request);
+        var marketResponse = getQuotesFromMarketList(GeneralFunctions.getSubscribeInstrumentInfos(request.getSubscribeInstrumentDetailsList()));
+        stockList.forEach(stockDTO->{
+            MarketQuotes quotes = marketResponse.get(String.valueOf(stockDTO.getInstrumentToken()));
+            stockDTO.setQuotes(quotes);
+            stockDTO.updatePrice();
+        });
+        return stockList;
+    }
 }

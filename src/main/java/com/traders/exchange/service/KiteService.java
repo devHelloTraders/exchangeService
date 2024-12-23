@@ -1,9 +1,9 @@
 package com.traders.exchange.service;
 
 import com.google.common.base.Strings;
+import com.traders.common.model.InstrumentInfo;
 import com.traders.common.utils.EncryptionUtil;
 import com.traders.exchange.config.AsyncConfiguration;
-import com.traders.exchange.domain.InstrumentInfo;
 import com.traders.exchange.exception.AttentionAlertException;
 import com.traders.exchange.properties.ConfigProperties;
 import com.zerodhatech.kiteconnect.KiteConnect;
@@ -16,7 +16,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;

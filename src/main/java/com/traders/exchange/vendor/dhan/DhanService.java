@@ -2,10 +2,11 @@ package com.traders.exchange.vendor.dhan;
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import com.traders.common.model.InstrumentInfo;
+import com.traders.common.model.MarkestDetailsRequest;
 import com.traders.common.model.MarketQuotes;
 import com.traders.common.utils.CsvUtils;
 import com.traders.exchange.config.AsyncConfiguration;
-import com.traders.exchange.domain.InstrumentInfo;
 import com.traders.exchange.vendor.dto.InstrumentDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -76,7 +78,7 @@ public class DhanService {
         registry.stopAllConnection();
     }
 
-    private InstrumentInfo createInstrumentInfo(DhanRequest.InstrumentDetails instrument) {
+    private InstrumentInfo createInstrumentInfo(MarkestDetailsRequest.InstrumentDetails instrument) {
         return new InstrumentInfo() {
             @Override
             public Long getInstrumentToken() {
@@ -95,7 +97,7 @@ public class DhanService {
         };
     }
 
-    public void subscribeInstrument(DhanRequest request){
+    public void subscribeInstrument(MarkestDetailsRequest request){
         List<InstrumentInfo> subscribeInstrumentDetails =request.getSubscribeInstrumentDetailsList()
                 .stream().map(this::createInstrumentInfo).toList();
         List<InstrumentInfo> unSubscribeInstrumentDetails =request.getUnSubscribeInstrumentDetailsList()
@@ -121,6 +123,15 @@ public class DhanService {
             responseJson=response.body().string();
         }
         return DhanResponseHandler.getExchangeData(responseJson);
+    }
+
+    public  Map<String, MarketQuotes> getAllMarketQuotes(List<InstrumentInfo> instrumentInfos) {
+        var marketQuotes = getAllMarketQuoteViaRest(instrumentInfos);
+        Map<String, MarketQuotes> quotesMap = new HashMap<>();
+        marketQuotes.keySet().forEach(quote -> {
+            quotesMap.putAll(marketQuotes.get(quote));
+        });
+        return quotesMap;
     }
 
 

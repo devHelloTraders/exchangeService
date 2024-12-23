@@ -2,7 +2,7 @@ package com.traders.exchange.vendor.dhan;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.traders.exchange.domain.InstrumentInfo;
+import com.traders.common.model.InstrumentInfo;
 import com.traders.exchange.exception.AttentionAlertException;
 import com.traders.exchange.properties.ConfigProperties;
 import lombok.SneakyThrows;

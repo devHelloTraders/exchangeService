@@ -1,7 +1,7 @@
 package com.traders.exchange.repository;
 
+import com.traders.common.model.InstrumentInfo;
 import com.traders.exchange.domain.Stock;
-import com.traders.exchange.domain.InstrumentInfo;
 import feign.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

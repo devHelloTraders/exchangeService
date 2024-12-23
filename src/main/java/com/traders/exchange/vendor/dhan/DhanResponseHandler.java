@@ -5,7 +5,6 @@ import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.config.SpringContextUtil;
 import com.traders.exchange.service.RedisService;
 import lombok.SneakyThrows;
-import okhttp3.ResponseBody;
 
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
@@ -23,8 +22,12 @@ public class DhanResponseHandler {
     public static void parseTickerPacket(ByteBuffer byteBuffer,String key) {
         String instrumentName = SpringContextUtil.getBean(RedisService.class).getValue("stockNameCache",key);
         MarketQuotes packet = MarketQuotes.parseFromByteBuffer(byteBuffer,instrumentName);
-        SpringContextUtil.getBean(RedisService.class).addStockCache(key,packet);
-     //   System.out.println(packet);
+        if(packet.getLatestTradedPrice() == 0.0 && packet.getDayCloseValue() ==0.0){
+            SpringContextUtil.getBean(RedisService.class).removeStockCache(key);
+        }else{
+            SpringContextUtil.getBean(RedisService.class).addStockCache(key,packet);
+        }
+
     }
 
     private static String formatTradeTime(int lastTradeTime) {
@@ -39,7 +42,7 @@ public class DhanResponseHandler {
 
         data.values().forEach(instruments ->
                 instruments.forEach((instrumentId, marketQuote) -> {
-                    SpringContextUtil.getBean(RedisService.class).addStockCache(instrumentId,marketQuote);
+                  //  SpringContextUtil.getBean(RedisService.class).addStockCache(instrumentId,marketQuote);
                     marketQuotesList.add(marketQuote);
                 })
         );

@@ -1,6 +1,6 @@
 package com.traders.exchange.vendor.dhan;
 
-import com.traders.exchange.domain.InstrumentInfo;
+import com.traders.common.model.InstrumentInfo;
 import lombok.Getter;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketConnectionManager;
@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 @Getter
 public class DhanConnectionMetadata {
@@ -70,7 +69,7 @@ public class DhanConnectionMetadata {
         return unSubscribeFunction;
     }
 
-    public void doAction(Map<Long, InstrumentInfo> instrumentsToSubscribe,Map<Long, InstrumentInfo> instrumentToUnsubscribe){
+    public void doAction(Map<Long, InstrumentInfo> instrumentsToSubscribe, Map<Long, InstrumentInfo> instrumentToUnsubscribe){
         if(instrumentsToSubscribe!=null && !instrumentsToSubscribe.isEmpty()){
             this.subscribeFunction.accept(session,new ArrayList<>(instrumentsToSubscribe.entrySet()));
 
