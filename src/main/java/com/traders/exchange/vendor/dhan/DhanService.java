@@ -3,7 +3,7 @@ package com.traders.exchange.vendor.dhan;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.traders.common.model.InstrumentInfo;
-import com.traders.common.model.MarkestDetailsRequest;
+import com.traders.common.model.MarketDetailsRequest;
 import com.traders.common.model.MarketQuotes;
 import com.traders.common.utils.CsvUtils;
 import com.traders.exchange.config.AsyncConfiguration;
@@ -30,19 +30,21 @@ public class DhanService {
     private final DhanConnectionRegistry registry;
     private final AsyncConfiguration asyncConfiguration;
     private final int CSV_BATCH_SIZE = 10000;
+
     public DhanService(OkHttpClient client, DhanConnectionRegistry registry, AsyncConfiguration asyncConfiguration) {
         this.client = client;
         this.registry = registry;
 
         this.asyncConfiguration = asyncConfiguration;
     }
-    @SneakyThrows
-    public List<InstrumentDTO> loadInstruments(String url){
 
-        var instrumentCsvBatch =  CsvUtils.splitCsvIntoChunks(getCSVRequest(url), CSV_BATCH_SIZE);
+    @SneakyThrows
+    public List<InstrumentDTO> loadInstruments(String url) {
+
+        var instrumentCsvBatch = CsvUtils.splitCsvIntoChunks(getCSVRequest(url), CSV_BATCH_SIZE);
         List<CompletableFuture<List<InstrumentDTO>>> futures = instrumentCsvBatch
                 .stream()
-                .map(batch ->  CompletableFuture.supplyAsync(() -> {
+                .map(batch -> CompletableFuture.supplyAsync(() -> {
                     CsvToBean<InstrumentDTO> csvToBean = new CsvToBeanBuilder<InstrumentDTO>(new StringReader(batch))
                             .withType(InstrumentDTO.class)
                             .withIgnoreLeadingWhiteSpace(true)
@@ -59,7 +61,6 @@ public class DhanService {
     }
 
 
-
     private String getCSVRequest(String url) throws IOException {
         Request request = (new Request.Builder()).url(url).build();
         try (Response response = this.client.newCall(request).execute()) {
@@ -74,11 +75,11 @@ public class DhanService {
         registry.startAllConnection();
     }
 
-    public void stopWebSocket(){
+    public void stopWebSocket() {
         registry.stopAllConnection();
     }
 
-    private InstrumentInfo createInstrumentInfo(MarkestDetailsRequest.InstrumentDetails instrument) {
+    private InstrumentInfo createInstrumentInfo(MarketDetailsRequest.InstrumentDetails instrument) {
         return new InstrumentInfo() {
             @Override
             public Long getInstrumentToken() {
@@ -97,35 +98,35 @@ public class DhanService {
         };
     }
 
-    public void subscribeInstrument(MarkestDetailsRequest request){
-        List<InstrumentInfo> subscribeInstrumentDetails =request.getSubscribeInstrumentDetailsList()
+    public void subscribeInstrument(MarketDetailsRequest request) {
+        List<InstrumentInfo> subscribeInstrumentDetails = request.getSubscribeInstrumentDetailsList()
                 .stream().map(this::createInstrumentInfo).toList();
-        List<InstrumentInfo> unSubscribeInstrumentDetails =request.getUnSubscribeInstrumentDetailsList()
+        List<InstrumentInfo> unSubscribeInstrumentDetails = request.getUnSubscribeInstrumentDetailsList()
                 .stream().map(this::createInstrumentInfo).toList();
-        registry.updateSubscription(subscribeInstrumentDetails,unSubscribeInstrumentDetails);
+        registry.updateSubscription(subscribeInstrumentDetails, unSubscribeInstrumentDetails);
     }
 
     @SneakyThrows
-    public List<MarketQuotes> getMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
-        String responseJson  ="";
+    public List<MarketQuotes> getMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos) {
+        String responseJson = "";
         try (Response response = this.client.newCall(registry.getDhanAPIRestRequest(instrumentInfos)).execute()) {
             assert response.body() != null;
-            responseJson=response.body().string();
+            responseJson = response.body().string();
         }
         return DhanResponseHandler.handleRestResponse(responseJson);
     }
 
     @SneakyThrows
-    public Map<String, Map<String, MarketQuotes>>  getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos){
-        String responseJson  ="";
+    public Map<String, Map<String, MarketQuotes>> getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos) {
+        String responseJson = "";
         try (Response response = this.client.newCall(registry.getDhanAPIRestRequest(instrumentInfos)).execute()) {
             assert response.body() != null;
-            responseJson=response.body().string();
+            responseJson = response.body().string();
         }
         return DhanResponseHandler.getExchangeData(responseJson);
     }
 
-    public  Map<String, MarketQuotes> getAllMarketQuotes(List<InstrumentInfo> instrumentInfos) {
+    public Map<String, MarketQuotes> getAllMarketQuotes(List<InstrumentInfo> instrumentInfos) {
         var marketQuotes = getAllMarketQuoteViaRest(instrumentInfos);
         Map<String, MarketQuotes> quotesMap = new HashMap<>();
         marketQuotes.keySet().forEach(quote -> {
@@ -133,8 +134,6 @@ public class DhanService {
         });
         return quotesMap;
     }
-
-
 
 
 }

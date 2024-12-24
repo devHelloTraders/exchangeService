@@ -1,7 +1,7 @@
 package com.traders.exchange.vendor.dhan;
 
 import com.traders.common.appconfig.util.HeaderUtil;
-import com.traders.common.model.MarkestDetailsRequest;
+import com.traders.common.model.MarketDetailsRequest;
 import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.vendor.functions.GeneralFunctions;
 import org.slf4j.Logger;
@@ -72,7 +72,7 @@ public class DhanResource {
                 HttpStatus.OK);
     }
     @PostMapping("/machine/subscribe")
-    public ResponseEntity<Void> subscribeInstruments(@RequestBody MarkestDetailsRequest dhanRequest) {
+    public ResponseEntity<Void> subscribeInstruments(@RequestBody MarketDetailsRequest dhanRequest) {
         LOG.debug("REST request to subscribe websocket session");
         dhanService.subscribeInstrument(dhanRequest);
         return new ResponseEntity<>(
@@ -82,7 +82,7 @@ public class DhanResource {
 
 
     @PostMapping("/machine/quotes")
-    public ResponseEntity<Map<String, MarketQuotes>> getQuotesFromMarketList(@RequestBody MarkestDetailsRequest dhanRequest) {
+    public ResponseEntity<Map<String, MarketQuotes>> getQuotesFromMarketList(@RequestBody MarketDetailsRequest dhanRequest) {
         LOG.debug("REST request to get Market quotes via Rest");
         dhanService.subscribeInstrument(dhanRequest);
 
