@@ -1,7 +1,8 @@
 package com.traders.exchange.orders.controller;
 
 import com.traders.exchange.orders.TradeRequest;
-import com.traders.exchange.orders.service.TradeService;
+import com.traders.exchange.orders.service.TradeFeignService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,14 +13,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("api/exchange/trade")
 public class TradeController {
 
-    private final TradeService tradeService;
+    private final TradeFeignService tradeService;
 
-    public TradeController(TradeService tradeService) {
-        this.tradeService = tradeService;
+    public TradeController(TradeFeignService tradeFeignService) {
+        this.tradeService = tradeFeignService;
     }
 
-    /*@PostMapping("/")
+    @PostMapping("/")
     public ResponseEntity<String> trade(@RequestBody TradeRequest tradeRequest) {
-
-    }*/
+        if (tradeRequest == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        tradeService.addTradeTransaction(tradeRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 }

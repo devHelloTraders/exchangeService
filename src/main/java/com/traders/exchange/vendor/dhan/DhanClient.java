@@ -1,7 +1,7 @@
 package com.traders.exchange.vendor.dhan;
 
 import com.traders.common.model.InstrumentInfo;
-import com.traders.common.model.MarkestDetailsRequest;
+import com.traders.common.model.MarketDetailsRequest;
 import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.properties.ConfigProperties;
 import com.traders.exchange.vendor.contract.*;
@@ -97,7 +97,7 @@ public class DhanClient implements ExchangeClient {
         });
         return quotesMap;
     }
-    public void subscribeInstrument(MarkestDetailsRequest request){
+    public void subscribeInstrument(MarketDetailsRequest request){
         dhanService.subscribeInstrument(request);
     }
 }
