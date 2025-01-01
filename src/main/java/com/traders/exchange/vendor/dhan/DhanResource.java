@@ -55,7 +55,7 @@ public class DhanResource {
                 HttpStatus.OK);
     }
     @GetMapping("/admin/startwebsocket")
-    public ResponseEntity<Void> startWebScoket() {
+    public ResponseEntity<Void> startWebSocket() {
         LOG.debug("REST request to Start websocket session");
         dhanClient.getInstrumentsToSubScribe();
         return new ResponseEntity<>(
