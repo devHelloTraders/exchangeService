@@ -94,8 +94,8 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:mysql://localhost:3306/hello_traders?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
     #url: jdbc:mysql://google/hello_traders?cloudSqlInstance=true-oasis-439517-g0:us-central1:hello-traders&socketFactory=com.google.cloud.sql.mysql.SocketFactory&user=root&password=root
-    username: root
-    password: root
+    username: system
+    password: systemuser
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       poolName: Hikari

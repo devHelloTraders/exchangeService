@@ -2,7 +2,7 @@ package com.traders.exchange.service;
 
 import com.google.common.base.Strings;
 import com.traders.common.model.InstrumentInfo;
-import com.traders.common.model.MarkestDetailsRequest;
+import com.traders.common.model.MarketDetailsRequest;
 import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.config.AsyncConfiguration;
 import com.traders.exchange.config.HikariConfiguration;
@@ -119,18 +119,18 @@ public class StockService {
 
         stockRepository.saveAll(stocks);
     }
-//    @Transactional
-//    public List<InstrumentInfo> getAllTokens(){
-//        Date now = new Date();
-//        LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-//        LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
-//        return stockRepository.findByIsActiveTrueAndExpiryIsNullOrExpiryBetween(now,Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-//    }
-
     @Transactional
     public List<InstrumentInfo> getAllTokens(){
-        return stockRepository.findAllUniqueWatchStocks();
+        Date now = new Date();
+        LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
+        return stockRepository.findByIsActiveTrueAndExpiryIsNullOrExpiryBetween(now,Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()));
     }
+
+//    @Transactional
+//    public List<InstrumentInfo> getAllTokens(){
+//        return stockRepository.findAllUniqueWatchStocks();
+//    }
 
 
     @Transactional
@@ -156,10 +156,10 @@ public class StockService {
     }
 
     public List<StockDTO> getStockDtoList(List<Stock> stockList, List<UnsubscribeInstrument> unsubscribeInstruments){
-        MarkestDetailsRequest request =new MarkestDetailsRequest();
-        stockList.forEach(stock-> request.addInstrument(MarkestDetailsRequest.InstrumentDetails.of(stock.getInstrumentToken(),stock.getExchange(),stock.getName())));
+        MarketDetailsRequest request =new MarketDetailsRequest();
+        stockList.forEach(stock-> request.addInstrument(MarketDetailsRequest.InstrumentDetails.of(stock.getInstrumentToken(),stock.getExchange(),stock.getName())));
         if(unsubscribeInstruments !=null)
-            unsubscribeInstruments.forEach(unsub-> request.removeInstrument(MarkestDetailsRequest.InstrumentDetails.of(unsub.getInstrumentId(),unsub.getExchange(),"")));
+            unsubscribeInstruments.forEach(unsub-> request.removeInstrument(MarketDetailsRequest.InstrumentDetails.of(unsub.getInstrumentId(),unsub.getExchange(),"")));
 
         var marketResponse = getQuotesFromMarketList(GeneralFunctions.getSubscribeInstrumentInfos(request.getSubscribeInstrumentDetailsList()));
         exchangeClient.subscribeInstrument(request);
@@ -183,8 +183,8 @@ public class StockService {
     }
 
     public List<StockDTO> mapQuotesToDTO(List<StockDTO> stockList){
-        MarkestDetailsRequest request =new MarkestDetailsRequest();
-        stockList.forEach(stock-> request.addInstrument(MarkestDetailsRequest.InstrumentDetails.of(stock.getInstrumentToken(),stock.getExchange(),stock.getTradingSymbol())));
+        MarketDetailsRequest request =new MarketDetailsRequest();
+        stockList.forEach(stock-> request.addInstrument(MarketDetailsRequest.InstrumentDetails.of(stock.getInstrumentToken(),stock.getExchange(),stock.getTradingSymbol())));
         exchangeClient.subscribeInstrument(request);
         var marketResponse = getQuotesFromMarketList(GeneralFunctions.getSubscribeInstrumentInfos(request.getSubscribeInstrumentDetailsList()));
         stockList.forEach(stockDTO->{

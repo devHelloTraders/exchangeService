@@ -2,7 +2,7 @@ package com.traders.exchange.vendor.contract;
 
 import com.google.common.base.Strings;
 import com.traders.common.model.InstrumentInfo;
-import com.traders.common.model.MarkestDetailsRequest;
+import com.traders.common.model.MarketDetailsRequest;
 import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.config.SpringContextUtil;
 import com.traders.exchange.exception.AttentionAlertException;
@@ -69,7 +69,7 @@ public interface ExchangeClient {
     List<MarketQuotes> getMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos);
     Map<String, MarketQuotes> getAllMarketQuoteViaRest(List<InstrumentInfo> instrumentInfos);
 
-    default void subscribeInstrument(MarkestDetailsRequest request){
+    default void subscribeInstrument(MarketDetailsRequest request){
 
     }
 }

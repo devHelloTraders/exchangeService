@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.traders.common.model.MarketQuotes;
 import com.traders.exchange.config.SpringContextUtil;
 import com.traders.exchange.service.RedisService;
+import com.traders.exchange.webscoket.PriceUpdateManager;
 import lombok.SneakyThrows;
 
 import java.nio.ByteBuffer;
@@ -20,8 +21,8 @@ public class DhanResponseHandler {
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             .withZone(ZoneId.systemDefault());
     public static void parseTickerPacket(ByteBuffer byteBuffer,String key) {
-        String instrumentName = SpringContextUtil.getBean(RedisService.class).getValue("stockNameCache",key);
-        MarketQuotes packet = MarketQuotes.parseFromByteBuffer(byteBuffer,instrumentName);
+        MarketQuotes packet = MarketQuotes.parseFromByteBuffer(byteBuffer,key);
+        SpringContextUtil.getBean(PriceUpdateManager.class).sendPriceUpdate(key,packet);
         if(packet.getLatestTradedPrice() == 0.0 && packet.getDayCloseValue() ==0.0){
             SpringContextUtil.getBean(RedisService.class).removeStockCache(key);
         }else{

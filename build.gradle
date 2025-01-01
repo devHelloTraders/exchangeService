@@ -17,7 +17,7 @@ plugins {
 }
 
 group = 'com.traders.hello'
-version = '0.0.3-final'
+version = '0.0.4-final'
 
 java {
 	sourceCompatibility = JavaVersion.VERSION_21
@@ -185,13 +185,12 @@ dependencies {
 
 	implementation 'org.springframework.kafka:spring-kafka:3.3.0'
 
-	implementation 'org.springframework:spring-websocket:6.2.0'
 
 
 	implementation 'com.opencsv:opencsv:5.9'
+	implementation 'org.springframework.security:spring-security-messaging'
 
-
-
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 
 dependencyManagement {

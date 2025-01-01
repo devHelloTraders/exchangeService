@@ -3,7 +3,7 @@ package com.traders.exchange.vendor.dhan;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.traders.common.model.InstrumentInfo;
-import com.traders.common.model.MarkestDetailsRequest;
+import com.traders.common.model.MarketDetailsRequest;
 import com.traders.common.model.MarketQuotes;
 import com.traders.common.utils.CsvUtils;
 import com.traders.exchange.config.AsyncConfiguration;
@@ -78,7 +78,7 @@ public class DhanService {
         registry.stopAllConnection();
     }
 
-    private InstrumentInfo createInstrumentInfo(MarkestDetailsRequest.InstrumentDetails instrument) {
+    private InstrumentInfo createInstrumentInfo(MarketDetailsRequest.InstrumentDetails instrument) {
         return new InstrumentInfo() {
             @Override
             public Long getInstrumentToken() {
@@ -97,7 +97,7 @@ public class DhanService {
         };
     }
 
-    public void subscribeInstrument(MarkestDetailsRequest request){
+    public void subscribeInstrument(MarketDetailsRequest request){
         List<InstrumentInfo> subscribeInstrumentDetails =request.getSubscribeInstrumentDetailsList()
                 .stream().map(this::createInstrumentInfo).toList();
         List<InstrumentInfo> unSubscribeInstrumentDetails =request.getUnSubscribeInstrumentDetailsList()
