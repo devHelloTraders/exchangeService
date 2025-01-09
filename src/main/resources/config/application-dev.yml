@@ -139,7 +139,7 @@ config:
     tickerBatch : 3000
   dhanConfig:
     apiKey: 1105449365 #later encrypt both param
-    apiSecret: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzM2MjM5NTQzLCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiaHR0cDovL2xvY2FsaG9zdDo4MDg4L2FwaS9yZW5ld3Nlc3Npb24iLCJkaGFuQ2xpZW50SWQiOiIxMTA1NDQ5MzY1In0.bgqjlUnH2WO0aAdrqmE3chgc0YShIAD5LmSeaF-3OZ6ogm_TkYUDPE2ZMs47rQxrZVA3uQFsdqelEy6knelOqw
+    apiSecret: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzM4ODU4MzgzLCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiIiwiZGhhbkNsaWVudElkIjoiMTEwNTQ0OTM2NSJ9.gr1Ec1ruz8eQW27q84e48kpkM02MCQdDVtF5Ltbuxx6zzlW7Q2AiKgpHIXyV7va4wkuGNAjQxJDBOBmr8Kwt5Q
     supportedExchange: NFO,BFO,MCX
     instrumentLoadDelta: 8
     tickerBatch: 5000
