@@ -16,8 +16,8 @@ public class Transaction extends AbstractAuditingEntity<Long> implements Seriali
     private Double price;
     private LocalDateTime requestTimestamp;
     private LocalDateTime completedTimestamp;
-    private Integer requestedQuantity;
-    private Integer completedQuantity;
+    private Double lotSize;
+    private Double executedPrice;
 
     @Enumerated(EnumType.STRING)
     private OrderType orderType;
@@ -63,22 +63,6 @@ public class Transaction extends AbstractAuditingEntity<Long> implements Seriali
 
     public void setCompletedTimestamp(LocalDateTime completedTimestamp) {
         this.completedTimestamp = completedTimestamp;
-    }
-
-    public Integer getRequestedQuantity() {
-        return requestedQuantity;
-    }
-
-    public void setRequestedQuantity(Integer requestedQuantity) {
-        this.requestedQuantity = requestedQuantity;
-    }
-
-    public Integer getCompletedQuantity() {
-        return completedQuantity;
-    }
-
-    public void setCompletedQuantity(Integer completedQuantity) {
-        this.completedQuantity = completedQuantity;
     }
 
     public OrderType getOrderType() {
