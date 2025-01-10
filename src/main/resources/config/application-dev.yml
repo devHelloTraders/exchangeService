@@ -13,11 +13,11 @@
 
 logging:
   level:
-    ROOT: DEBUG
-    com.traders.exchange.appconfig: DEBUG
-    org.springframework.boot.actuate: DEBUG
-    com.traders.exchange: DEBUG
-    com.traders.common: DEBUG
+    ROOT: Info
+    com.traders.exchange.appconfig: Info
+    org.springframework.boot.actuate: Info
+    com.traders.exchange: Info
+    com.traders.common: Info
 
 
 management:

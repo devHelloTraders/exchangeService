@@ -26,7 +26,8 @@ public class StockDTO implements Serializable {
     @JsonIgnore
     private String currentPriceKey;
     public void updatePrice(){
-        lastPrice=this.quotes.getLatestTradedPrice() ==0 ?
+        if(this.quotes !=null)
+            lastPrice=this.quotes.getLatestTradedPrice() ==0 ?
                 this.quotes.getDayCloseValue() :
                 this.quotes.getLatestTradedPrice();
     }

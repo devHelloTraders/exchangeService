@@ -119,18 +119,18 @@ public class StockService {
 
         stockRepository.saveAll(stocks);
     }
-    @Transactional
-    public List<InstrumentInfo> getAllTokens(){
-        Date now = new Date();
-        LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
-        return stockRepository.findByIsActiveTrueAndExpiryIsNullOrExpiryBetween(now,Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-    }
-
 //    @Transactional
 //    public List<InstrumentInfo> getAllTokens(){
-//        return stockRepository.findAllUniqueWatchStocks();
+//        Date now = new Date();
+//        LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+//        LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
+//        return stockRepository.findByIsActiveTrueAndExpiryIsNullOrExpiryBetween(now,Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()));
 //    }
+
+    @Transactional
+    public List<InstrumentInfo> getAllTokens(){
+        return stockRepository.findAllUniqueWatchStocks();
+    }
 
 
     @Transactional
