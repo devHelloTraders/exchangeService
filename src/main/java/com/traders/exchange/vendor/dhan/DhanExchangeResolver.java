@@ -22,6 +22,7 @@ public class DhanExchangeResolver {
         CATEGORY_MAP.put("MCX_FUTIDX", "MCX_COMM");
         CATEGORY_MAP.put("MCX_FUTCOM", "MCX_COMM");
         CATEGORY_MAP.put("MCX_OPTIDX", "MCX_COMM");
+        CATEGORY_MAP.put("MCX_OPTFUT", "MCX_OPT");
 
         CATEGORY_MAP.put("INDEX_INDEX", "I_IDX");
     }
