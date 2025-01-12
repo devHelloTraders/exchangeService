@@ -1,23 +1,23 @@
 package com.traders.exchange.webscoket;
 
 import com.traders.common.model.MarketQuotes;
+import com.traders.exchange.orders.service.OrderMatchService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.util.Random;
 
 @Service
 public class PriceUpdateManager {
     private final SimpMessagingTemplate messagingTemplate;
     private final WebSocketSubscriptionService subscriptionManager;
-
-    public PriceUpdateManager(SimpMessagingTemplate messagingTemplate, WebSocketSubscriptionService subscriptionManager) {
+    private final OrderMatchService orderMatchService;
+    public PriceUpdateManager(SimpMessagingTemplate messagingTemplate, WebSocketSubscriptionService subscriptionManager, OrderMatchService orderMatchService) {
         this.messagingTemplate = messagingTemplate;
         this.subscriptionManager = subscriptionManager;
+        this.orderMatchService = orderMatchService;
     }
 
     public void sendPriceUpdate(String instrumentId, MarketQuotes priceUpdate) {
+        orderMatchService.onPriceUpdate(instrumentId,priceUpdate.getLatestTradedPrice());
         subscriptionManager.getUserSubscriptions().forEach((sessionId, subscribedInstruments) -> {
             if (subscribedInstruments.contains(instrumentId)) {
                 messagingTemplate.convertAndSendToUser(sessionId, "/topic/update", priceUpdate);

@@ -194,6 +194,7 @@ config:
 #        # Token is valid 24 hours
         token-validity-in-seconds: 86400
         token-validity-in-seconds-for-remember-me: 2592000
+        machineToken : eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtYWNoaW5lIiwiYXV0aCI6IlJPTEVfTUFDSElORSIsImlhdCI6MTczNDc1OTg3NSwidXNlcklkIjoiNG9MamRISThPcFhoSGhFZUZyU084dz09In0.2JLmoU_d96LxBtiF__UyeGBL1cIZIhHJBT9Dqqk028BWxJ3GRQS2nr7k06Ad5_R7LkH8NDkGS6ZJfGC0ubUGsA
   logging:
     use-json-format: false # By default, logs are not in Json format
     logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration

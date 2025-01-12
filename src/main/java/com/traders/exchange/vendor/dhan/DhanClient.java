@@ -61,7 +61,6 @@ public class DhanClient implements ExchangeClient {
     }
 
     @Override
-    @SneakyThrows
     public void renewClientSession(String requestId, String uuid) {
 
     }

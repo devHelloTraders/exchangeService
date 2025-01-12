@@ -8,15 +8,17 @@ import java.util.Objects;
 @Getter
 @Setter
 public class StockId implements Serializable {
+    private long instrumentToken;
     private String tradingSymbol;
     private String exchange;
 
     public StockId() {
     }
 
-    public StockId(String tradingSymbol, String exchange) {
+    public StockId(long instrumentToken,String tradingSymbol, String exchange) {
         this.tradingSymbol = tradingSymbol;
         this.exchange = exchange;
+        this.instrumentToken=instrumentToken;
     }
 
 

@@ -24,7 +24,8 @@ public class TradeController {
         if (tradeRequest == null) {
             return ResponseEntity.badRequest().build();
         }
-        tradeService.addTradeTransaction(tradeRequest);
+        var transactionID = tradeService.addTradeTransaction(tradeRequest);
+        tradeRequest.orderCategory().postProcessOrder(transactionID,tradeRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

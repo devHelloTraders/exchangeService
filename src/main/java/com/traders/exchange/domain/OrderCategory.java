@@ -1,7 +1,10 @@
 package com.traders.exchange.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.traders.exchange.config.SpringContextUtil;
 import com.traders.exchange.orders.TradeRequest;
+import com.traders.exchange.orders.TradeResponse;
+import com.traders.exchange.orders.service.OrderMatchService;
 
 @JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum OrderCategory {
@@ -19,6 +22,14 @@ public enum OrderCategory {
             validateAskedPrice(tradeRequest.askedPrice());
             validateLotSize(tradeRequest.lotSize());
             return true;
+        }
+        @Override
+        public void postProcessOrder (long transactionId,TradeRequest request){
+            TradeResponse response = TradeResponse.builder()
+                    .transactionId(transactionId)
+                            .request(request)
+                                    .build();
+            SpringContextUtil.getBean(OrderMatchService.class).placeBuyOrder(response);
         }
     },
     BRACKET_AT_MARKET {
@@ -46,10 +57,19 @@ public enum OrderCategory {
             validateLotSize(tradeRequest.lotSize());
             return true;
         }
+        @Override
+        public void postProcessOrder (long transactionId,TradeRequest request){
+            TradeResponse response = TradeResponse.builder()
+                    .transactionId(transactionId)
+                    .request(request)
+                    .build();
+            SpringContextUtil.getBean(OrderMatchService.class).placeSellOrder(response);
+        }
     };
 
     public abstract boolean validateTradeRequest(TradeRequest tradeRequest);
-
+    public void postProcessOrder (long transactionId,TradeRequest request){
+    }
     void validateLotSize(Double lotSize) {
         if (lotSize == null)
             throw new IllegalArgumentException("Lot size cannot be null.");

@@ -103,7 +103,7 @@ public class StockService {
             log.debug("Scaling down connections");
         }) ;
 
-       // saveStocks(stockList);
+        // saveStocks(stockList);
     }
 
     private void saveToRedis(List<Stock> stocks){

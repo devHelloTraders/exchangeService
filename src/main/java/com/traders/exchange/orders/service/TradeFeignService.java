@@ -1,6 +1,7 @@
 package com.traders.exchange.orders.service;
 
 import com.traders.exchange.orders.TradeRequest;
+import com.traders.exchange.orders.TransactionUpdateRecord;
 import com.traders.exchange.web.feign.FeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface TradeFeignService {
 
     @PostMapping("/api/portfolio/transactions/add")
-    void addTradeTransaction(@RequestBody TradeRequest tradeRequest);
+    long addTradeTransaction(@RequestBody TradeRequest tradeRequest);
+
+    @PostMapping("/api/portfolio/transactions/update")
+    long updateTradeTransaction(@RequestBody TransactionUpdateRecord updateRecord);
 
 }
