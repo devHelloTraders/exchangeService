@@ -44,7 +44,7 @@ public class OrderMatchService {
         synchronized (getProcessingLock(stockSymbol,price)) {
             while (!priceQueue.isEmpty()) {
                 Double currentPrice = priceQueue.peek(); // Peek at the first price in the queue
-                if (currentProcessingPrice.containsKey(stockSymbol) && !currentPrice.equals(currentProcessingPrice.get(stockSymbol))) {
+                if (currentPrice!=null && currentProcessingPrice.containsKey(stockSymbol) && !currentPrice.equals(currentProcessingPrice.get(stockSymbol))) {
                     try {
                         getProcessingLock(stockSymbol,price).wait();
                     } catch (InterruptedException e) {

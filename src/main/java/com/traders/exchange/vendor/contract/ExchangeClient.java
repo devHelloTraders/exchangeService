@@ -26,7 +26,7 @@ public interface ExchangeClient {
         if(Strings.isNullOrEmpty(uuid) || Strings.isNullOrEmpty(requestId) || !uuid.equals(getRedisService().getSessionValue("uuid"))){
             throw new AttentionAlertException("Random UUID not matched", "KiteService","Can not create Kite session because UUID or Request id is not valid");
         }
-        renewClientSession( requestId, uuid);
+       // renewClientSession( requestId, uuid);
         log(true,"Session renewed loading instruments");
         getAllInstruments();
     }
@@ -45,7 +45,7 @@ public interface ExchangeClient {
         getRedisService().saveToSessionCacheWithTTL("lastInstrumentLoaded",LocalDateTime.now(),getConfigProperties().getKiteConfig().getInstrumentLoadDelta(), TimeUnit.of(ChronoUnit.HOURS));
     }
 
-    @Scheduled(cron = "0 32 15 * * *")
+    //@Scheduled(cron = "0 32 15 * * *")
     @Transactional
     default void getInstrumentsToSubScribe(){
         List<InstrumentInfo> tokenList =getStockService().getAllTokens().stream().toList();

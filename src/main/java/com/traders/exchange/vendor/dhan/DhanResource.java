@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -71,6 +72,19 @@ public class DhanResource {
                 HeaderUtil.createAlert(applicationName,"Websocket connection started",""),
                 HttpStatus.OK);
     }
+
+    @Scheduled(cron = "0 00 9,16,20 * * *")
+    @GetMapping("/admin/renewWebSocket")
+    public ResponseEntity<Void> renewClientSession() {
+        LOG.debug("request to Renew websocket session");
+        dhanService.doCleanup();
+        dhanClient.getInstrumentsToSubScribe();
+        return new ResponseEntity<>(
+                HeaderUtil.createAlert(applicationName,"Websocket connection started",""),
+                HttpStatus.OK);
+    }
+
+
     @PostMapping("/machine/subscribe")
     public ResponseEntity<Void> subscribeInstruments(@RequestBody MarketDetailsRequest dhanRequest) {
         LOG.debug("REST request to subscribe websocket session");

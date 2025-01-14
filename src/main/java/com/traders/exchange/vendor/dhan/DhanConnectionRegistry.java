@@ -3,6 +3,7 @@ package com.traders.exchange.vendor.dhan;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.traders.common.model.InstrumentInfo;
+import com.traders.exchange.config.SpringContextUtil;
 import com.traders.exchange.exception.AttentionAlertException;
 import com.traders.exchange.properties.ConfigProperties;
 import lombok.SneakyThrows;
@@ -85,9 +86,12 @@ public class DhanConnectionRegistry {
     }
 
     private Consumer<String> retryConnectionConsumer() {
-        return (String) -> connectionPool.values().stream()
-                .filter(isConnectionActive.negate())
-                .forEach(ConnectionManagerSupport::start);
+//        return (String) -> connectionPool.values().stream()
+//                .filter(isConnectionActive.negate())
+//                .forEach(ConnectionManagerSupport::start);
+
+        return (String)-> SpringContextUtil.getBean(DhanClient.class).restartSession();
+
     }
 
     public void startAllConnection() {
@@ -96,6 +100,12 @@ public class DhanConnectionRegistry {
 
     public void stopAllConnection() {
         connectionPool.forEach(this::stopConnection);
+    }
+    public void doCleanUp(){
+        connectionPool.clear();
+        urlList.clear();
+        poolSelector.clear();
+       // allSubscriptions.clear();
     }
 
     private final Function<List<InstrumentInfo>, Map<Long, InstrumentInfo>> instrumentDetailsCreator = (instrumentList) ->
@@ -216,7 +226,7 @@ public class DhanConnectionRegistry {
         if(isSubscribe)
             allSubscriptions.addAll(instruments);
         else
-            allSubscriptions.removeAll(instruments);
+            instruments.forEach(allSubscriptions::remove);
     };
 
     public void updateSubscription(List<InstrumentInfo> subscribeList, List<InstrumentInfo> unsubscribeList) {

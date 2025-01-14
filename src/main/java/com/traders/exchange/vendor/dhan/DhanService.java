@@ -78,6 +78,11 @@ public class DhanService {
         registry.stopAllConnection();
     }
 
+    public void doCleanup(){
+        registry.stopAllConnection();
+        registry.doCleanUp();
+    }
+
     private InstrumentInfo createInstrumentInfo(MarketDetailsRequest.InstrumentDetails instrument) {
         return new InstrumentInfo() {
             @Override

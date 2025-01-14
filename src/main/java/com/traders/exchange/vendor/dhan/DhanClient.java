@@ -31,12 +31,14 @@ public class DhanClient implements ExchangeClient {
         this.configProperties = configProperties;
         this.dhanService = dhanService;
     }
+
     @SneakyThrows
     public void renewSession(String requestId,String uuid) {
 
         log.debug("Session renewed loading instruments");
         getAllInstruments();
     }
+
 
     @Override
     @SneakyThrows
@@ -62,6 +64,8 @@ public class DhanClient implements ExchangeClient {
 
     @Override
     public void renewClientSession(String requestId, String uuid) {
+        log.debug("Restarting websocket connection");
+        dhanService.doCleanup();
 
     }
 
@@ -98,5 +102,10 @@ public class DhanClient implements ExchangeClient {
     }
     public void subscribeInstrument(MarketDetailsRequest request){
         dhanService.subscribeInstrument(request);
+    }
+
+    public void restartSession(){
+        dhanService.doCleanup();
+        getInstrumentsToSubScribe();
     }
 }

@@ -88,7 +88,7 @@ public class KiteService {
 
         redisService.saveToSessionCacheWithTTL("lastInstrumentLoaded",LocalDateTime.now(),configProperties.getKiteConfig().getInstrumentLoadDelta(), TimeUnit.of(ChronoUnit.HOURS));
     }
-    @Scheduled(cron = "0 59 22 * * *")
+    //@Scheduled(cron = "0 59 22 * * *")
     @SneakyThrows
     /** Demonstrates com.zerodhatech.ticker connection, subcribing for instruments, unsubscribing for instruments, set mode of tick data, com.zerodhatech.ticker disconnection*/
     public void tickerUsage() {
