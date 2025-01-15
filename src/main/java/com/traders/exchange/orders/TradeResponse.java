@@ -1,7 +1,6 @@
 package com.traders.exchange.orders;
 
 import lombok.Builder;
-import lombok.Getter;
 
 @Builder
 public record TradeResponse(
@@ -9,8 +8,8 @@ public record TradeResponse(
         Long transactionId
 ) {
 
-    public Double getTargetPrice() {
-        return request.targetPrice();
+    public Double getAskedPrice() {
+        return request.askedPrice();
     }
 
     public Double getStopLossPrice() {

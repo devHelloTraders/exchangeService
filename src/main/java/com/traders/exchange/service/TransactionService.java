@@ -27,7 +27,7 @@ public class TransactionService {
 
     @Scheduled(cron = "0 0 8 * * ?")
     public void loadPendingTransactions() {
-        List<Transaction> pendingTransactions = transactionRepository.findByTransactionStatusOrOrderCategory(
+        List<Transaction> pendingTransactions = transactionRepository.findByTransactionStatusAndOrderCategory(
                 TransactionStatus.PENDING, OrderCategory.LIMIT
         );
         pendingTransactions.stream()

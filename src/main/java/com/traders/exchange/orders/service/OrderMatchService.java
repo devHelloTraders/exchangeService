@@ -73,7 +73,7 @@ public class OrderMatchService {
         PriorityQueue<TradeResponse> buyOrders = buyOrderQueues.get(stockSymbol);
         if (buyOrders == null) return;
 
-        while (!buyOrders.isEmpty() && buyOrders.peek().getTargetPrice().compareTo(price) <= 0) {
+        while (!buyOrders.isEmpty() && buyOrders.peek().getAskedPrice().compareTo(price) <= 0) {
             TradeResponse buyOrder = buyOrders.poll();
             TransactionUpdateRecord updateRecord = TransactionUpdateRecord.builder()
                     .id(buyOrder.transactionId())
@@ -106,7 +106,7 @@ public class OrderMatchService {
 
     public void placeBuyOrder(TradeResponse order) {
         if (loadedTransactionIds.contains(order.transactionId())) return;
-        buyOrderQueues.computeIfAbsent(order.request().stockId().toString(), k -> new PriorityQueue<>(Comparator.comparing(TradeResponse::getTargetPrice)))
+        buyOrderQueues.computeIfAbsent(order.request().stockId().toString(), k -> new PriorityQueue<>(Comparator.comparing(TradeResponse::getAskedPrice)))
                 .offer(order);
         loadedTransactionIds.add(order.transactionId());
     }

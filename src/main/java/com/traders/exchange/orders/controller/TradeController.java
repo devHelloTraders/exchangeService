@@ -19,11 +19,12 @@ public class TradeController {
         this.tradeService = tradeFeignService;
     }
 
-    @PostMapping("/")
+    @PostMapping("/add")
     public ResponseEntity<String> trade(@RequestBody TradeRequest tradeRequest) {
         if (tradeRequest == null) {
             return ResponseEntity.badRequest().build();
         }
+        tradeRequest.orderCategory().validateTradeRequest(tradeRequest);
         var transactionID = tradeService.addTradeTransaction(tradeRequest);
         tradeRequest.orderCategory().postProcessOrder(transactionID,tradeRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();

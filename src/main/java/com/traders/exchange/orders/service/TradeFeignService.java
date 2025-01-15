@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name="portfolioservice",url = "${gateway.url}",configuration = FeignConfig.class)
 public interface TradeFeignService {
 
-    @PostMapping("/api/portfolio/transactions/add")
+    @PostMapping("/api/portfolio/transactions/addTxn")
     long addTradeTransaction(@RequestBody TradeRequest tradeRequest);
 
     @PostMapping("/api/portfolio/transactions/update")
-    long updateTradeTransaction(@RequestBody TransactionUpdateRecord updateRecord);
+    void updateTradeTransaction(@RequestBody TransactionUpdateRecord updateRecord);
 
 }

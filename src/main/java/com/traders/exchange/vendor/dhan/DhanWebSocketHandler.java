@@ -4,18 +4,12 @@ import com.traders.common.model.InstrumentInfo;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.web.socket.BinaryMessage;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -30,6 +24,8 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
     private final int connectionId;
     private final Consumer<String> retryFunction;
     private final DhanConnectionMetadata metadata;
+    private static final int HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
+    private Timer heartbeatTimer;
     public DhanWebSocketHandler(int connectionId,  Consumer<String> retryFunction, DhanConnectionMetadata metadata) {
         this.connectionId = connectionId;
         this.retryFunction = retryFunction;
@@ -45,7 +41,7 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
         metadata.addSession(session);
         log.info("connection established sending subscription");
         sendSubscriptionMessages(session,new ArrayList<>(metadata.getInstrumentDetails().entrySet()));
-
+        startHeartbeat(session);
     }
 
     private void sendSubscriptionMessages(WebSocketSession session,  List<Map.Entry<Long, InstrumentInfo>> instrumentList)  {
@@ -138,12 +134,46 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
     @Override
     public void handleTransportError(@NotNull WebSocketSession session, Throwable exception) {
        log.info("Error: {}" , exception.getMessage());
+       stopHeartbeat();
         retryFunction.accept(Objects.requireNonNull(session.getUri()).toString());
     }
 
     @Override
     public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status)  {
         log.info("Connection closed. {}",status);
+        if(status.getCode() ==1006){
+            log.info("Connection closed restarting all connections. {}",status);
+            retryFunction.accept(Objects.requireNonNull(session.getUri()).toString());
+        }
         metadata.removeSession();
+        stopHeartbeat();
+    }
+
+    private void startHeartbeat(WebSocketSession session) {
+        heartbeatTimer = new Timer(true); // Daemon timer
+        heartbeatTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    if (session.isOpen()) {
+                        session.sendMessage(new PingMessage(ByteBuffer.wrap("heartbeat".getBytes())));
+                        log.debug("Heartbeat sent to WebSocket server.");
+                    } else {
+                        log.warn("WebSocket session is closed. Stopping heartbeat.");
+                        stopHeartbeat();
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to send heartbeat. Error: {}", e.getMessage());
+                    stopHeartbeat();
+                }
+            }
+        }, 0, HEARTBEAT_INTERVAL_MS);
+    }
+
+    private void stopHeartbeat() {
+        if (heartbeatTimer != null) {
+            heartbeatTimer.cancel();
+            heartbeatTimer = null;
+        }
     }
 }

@@ -12,5 +12,5 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction,Long> {
 
     List<Transaction> findByCreatedBy (String userId);
-    List<Transaction>findByTransactionStatusOrOrderCategory(TransactionStatus status, OrderCategory category);
+    List<Transaction>findByTransactionStatusAndOrderCategory(TransactionStatus status, OrderCategory category);
 }

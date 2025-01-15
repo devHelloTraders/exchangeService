@@ -44,12 +44,13 @@ public class PortfolioStock extends AbstractAuditingEntity<Long> implements Seri
     @JoinColumn(name = "transaction_id")
     @OrderBy("ID DESC")
     private Set<Transaction> transactions = new HashSet<>();
+    @Column(name = "isCompleted")
+    private Boolean isCompleted= false;
 
-
-    public void addQuantity(Integer quantity, Double cost){
-        Double txnCost =quantity * cost;
-        Double currentAveragePrice = getAverageCost() * getQuantity();
-        setQuantity(getQuantity()+quantity);
-        setAverageCost(getQuantity() >0 ?  (currentAveragePrice+txnCost)/getQuantity() : 0);
-    }
+//    public void addQuantity(Integer quantity, Double cost){
+//        Double txnCost =quantity * cost;
+//        Double currentAveragePrice = getAverageCost() * getQuantity();
+//        setQuantity(getQuantity()+quantity);
+//        setAverageCost(getQuantity() >0 ?  (currentAveragePrice+txnCost)/getQuantity() : 0);
+//    }
 }
