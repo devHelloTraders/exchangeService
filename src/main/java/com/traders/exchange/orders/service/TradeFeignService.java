@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
-@FeignClient(name="portfolioservice",url = "${gateway.url}",configuration = FeignConfig.class)
+@FeignClient(name="portfolioservice",url = "${gateway.url}")
 public interface TradeFeignService {
 
     @PostMapping("/api/portfolio/transactions/addTxn")

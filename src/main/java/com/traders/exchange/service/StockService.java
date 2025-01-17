@@ -1,6 +1,5 @@
 package com.traders.exchange.service;
 
-import com.google.common.base.Strings;
 import com.traders.common.model.InstrumentInfo;
 import com.traders.common.model.MarketDetailsRequest;
 import com.traders.common.model.MarketQuotes;
@@ -15,6 +14,7 @@ import com.traders.exchange.service.dto.StockDTO;
 import com.traders.exchange.service.dto.UnsubscribeInstrument;
 import com.traders.exchange.vendor.contract.ExchangeClient;
 import com.traders.exchange.vendor.dhan.DhanExchangeResolver;
+import com.traders.exchange.vendor.dhan.ExchangeSegment;
 import com.traders.exchange.vendor.dto.InstrumentDTO;
 import com.traders.exchange.vendor.functions.GeneralFunctions;
 import jakarta.transaction.Transactional;
@@ -134,25 +134,25 @@ public class StockService {
 
 
     @Transactional
-    public Page<Stock> getAllTokensByExchange(String exchage, Pageable pageable){
+    public Page<Stock> getAllTokensByExchange(ExchangeSegment exchange, Pageable pageable){
         Date now = new Date();
         LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
-        return stockRepository.findByIsActiveTrueAndExchangeAndExpiryIsNullOrExpiryBetween(exchage,now,
-                Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),pageable);
+        return stockRepository.findByIsActiveTrueAndExchangeAndExpiryIsNullOrExpiryBetween(exchange.name(),now,
+                Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),exchange.getInstrumentTypes(),pageable);
     }
 
     @Transactional
-    public Page<Stock> searchTokensByExchange(String exchage,String searchName, Pageable pageable){
+    public Page<Stock> searchTokensByExchange(ExchangeSegment exchange,String searchName,Pageable pageable){
         Date now = new Date();
         LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
-       if (Strings.isNullOrEmpty(exchage))
-            return stockRepository.findByIsActiveTrueAndSymbolAnsExpiryIsNullOrExpiryBetween(searchName,now,
+       if (exchange==null)
+            return stockRepository.findByIsActiveTrueAndSymbolAndExpiryIsNullOrExpiryBetween(searchName,now,
                 Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),pageable);
 
-       return stockRepository.findByIsActiveTrueAndExchangeAndSymbolAnsExpiryIsNullOrExpiryBetween(searchName,exchage,now,
-                Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),pageable);
+       return stockRepository.findByIsActiveTrueAndExchangeAndSymbolAnsExpiryIsNullOrExpiryBetween(searchName,exchange.name(),now,
+                Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),exchange.getInstrumentTypes(),pageable);
     }
 
     public List<StockDTO> getStockDtoList(List<Stock> stockList, List<UnsubscribeInstrument> unsubscribeInstruments){
