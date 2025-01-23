@@ -31,11 +31,11 @@ public class StockId implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         StockId stockId = (StockId) o;
         return Objects.equals(tradingSymbol, stockId.tradingSymbol) &&
-               Objects.equals(exchange, stockId.exchange);
+               Objects.equals(exchange, stockId.exchange) && Objects.equals(instrumentToken, stockId.instrumentToken);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tradingSymbol, exchange);
+        return Objects.hash(tradingSymbol, exchange,instrumentToken);
     }
 }
