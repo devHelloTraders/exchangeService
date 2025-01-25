@@ -2,6 +2,7 @@ package com.traders.exchange.schedulertasks.expiredeal;
 
 import com.traders.exchange.domain.OrderCategory;
 import com.traders.exchange.domain.OrderType;
+import com.traders.exchange.domain.OrderValidity;
 import com.traders.exchange.orders.TradeRequest;
 import com.traders.exchange.orders.service.TradeFeignService;
 import com.traders.exchange.schedulertasks.expiredeal.model.ExpiredDeal;
@@ -78,7 +79,8 @@ public class DealExpiryScheduler {
                 orderType,
                 OrderCategory.MARKET,
                 expiredDeal.getStockId(),
-                expiredDeal.getLastPrice(),null,null
+                expiredDeal.getLastPrice(),null,null,
+                OrderValidity.INTRADAY
         );
     }
 
