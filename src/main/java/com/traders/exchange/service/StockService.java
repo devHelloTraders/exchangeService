@@ -59,6 +59,7 @@ public class StockService {
             stock.setLastPrice(instrument.last_price);
             stock.setTickSize(instrument.tick_size);
             stock.setInstrumentType(instrument.instrument_type);
+            stock.setExchangeSegment(instrument.getExchangeSegment());
             return stock;
         };
         this.asyncConfiguration = asyncConfiguration;
@@ -81,9 +82,9 @@ public class StockService {
                 .filter(Objects::nonNull)
                 .filter(instrument -> instrument.getName() !=null)
                 .map(instrumentDTO -> {
-                    instrumentDTO.setExchange(DhanExchangeResolver.getCategory(instrumentDTO));
+                    instrumentDTO.setExchangeSegment(DhanExchangeResolver.getCategory(instrumentDTO));
                     return instrumentDTO;
-                }).filter(instrumentDTO -> !instrumentDTO.getExchange().equalsIgnoreCase("UNKNOWN_CATEGORY"))
+                }).filter(instrumentDTO -> !instrumentDTO.getExchangeSegment().equalsIgnoreCase("UNKNOWN_CATEGORY"))
                 .map(instrumentStockConverter::convert)
                 .toList();
         final int batchSize = configProperties.getStockConfig().getBatchSize();
@@ -138,7 +139,7 @@ public class StockService {
         Date now = new Date();
         LocalDateTime localDateTime = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime updatedDateTime = localDateTime.plusDays(configProperties.getDhanConfig().getAllowedDaysRange());
-        return stockRepository.findByIsActiveTrueAndExchangeAndExpiryIsNullOrExpiryBetween(exchange.name(),now,
+        return stockRepository.findByIsActiveTrueAndExchangeAndExpiryIsNullOrExpiryBetween(exchange.getExchanges(),now,
                 Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),exchange.getInstrumentTypes(),pageable);
     }
 
@@ -151,13 +152,13 @@ public class StockService {
             return stockRepository.findByIsActiveTrueAndSymbolAndExpiryIsNullOrExpiryBetween(searchName,now,
                 Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),pageable);
 
-       return stockRepository.findByIsActiveTrueAndExchangeAndSymbolAnsExpiryIsNullOrExpiryBetween(searchName,exchange.name(),now,
+       return stockRepository.findByIsActiveTrueAndExchangeAndSymbolAnsExpiryIsNullOrExpiryBetween(searchName,exchange.getExchanges(),now,
                 Date.from(updatedDateTime.atZone(ZoneId.systemDefault()).toInstant()),exchange.getInstrumentTypes(),pageable);
     }
 
     public List<StockDTO> getStockDtoList(List<Stock> stockList, List<UnsubscribeInstrument> unsubscribeInstruments){
         MarketDetailsRequest request =new MarketDetailsRequest();
-        stockList.forEach(stock-> request.addInstrument(MarketDetailsRequest.InstrumentDetails.of(stock.getInstrumentToken(),stock.getExchange(),stock.getName())));
+        stockList.forEach(stock-> request.addInstrument(MarketDetailsRequest.InstrumentDetails.of(stock.getInstrumentToken(),stock.getExchangeSegment(),stock.getName())));
         if(unsubscribeInstruments !=null)
             unsubscribeInstruments.forEach(unsub-> request.removeInstrument(MarketDetailsRequest.InstrumentDetails.of(unsub.getInstrumentId(),unsub.getExchange(),"")));
 

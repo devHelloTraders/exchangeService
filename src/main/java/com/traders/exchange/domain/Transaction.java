@@ -49,4 +49,5 @@ public class Transaction extends AbstractAuditingEntity<Long> implements Seriali
     private List<Transaction> childTransactions;
 
     private int deleteflag;
+    private double margin;
 }

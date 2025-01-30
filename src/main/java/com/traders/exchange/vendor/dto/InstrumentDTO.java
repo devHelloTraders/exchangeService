@@ -1,6 +1,5 @@
 package com.traders.exchange.vendor.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvDate;
 import lombok.Getter;
@@ -16,13 +15,13 @@ public class InstrumentDTO {
     public long exchange_token;
    @CsvBindByName(column = "SEM_TRADING_SYMBOL")
     public String tradingsymbol;
-   @CsvBindByName(column = "SEM_INSTRUMENT_NAME")
+   @CsvBindByName(column = "SEM_CUSTOM_SYMBOL")
     public String name;
 
     public double last_price;
    @CsvBindByName(column = "SEM_TICK_SIZE")
     public double tick_size;
-   @CsvBindByName(column = "SEM_EXCH_INSTRUMENT_TYPE")
+   @CsvBindByName(column = "SEM_INSTRUMENT_NAME")
     public String instrument_type;
    @CsvBindByName(column = "SEM_SEGMENT")
     public String segment;
@@ -36,4 +35,5 @@ public class InstrumentDTO {
    @CsvDate("yyyy-MM-dd HH:mm")
     public Date expiry;
 
+   private String exchangeSegment;
 }

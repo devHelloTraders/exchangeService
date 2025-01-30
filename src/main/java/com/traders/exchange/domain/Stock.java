@@ -61,6 +61,8 @@ public class Stock extends AbstractAuditingEntity<Long> implements Serializable 
     @Temporal(TemporalType.DATE)
     private Date expiry;
 
+    @Column(name="exchange_segment")
+    private String exchangeSegment;
 
 //    @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL)
 //    private Set<Transaction> transactions;

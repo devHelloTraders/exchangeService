@@ -18,24 +18,24 @@ public interface StockRepository extends JpaRepository<Stock,Long> {
     List<Stock> findAllByIdIn (List<Long> ids);
     List<InstrumentInfo> findByIsActiveTrueAndExpiryAfter(Date now);
     List<InstrumentInfo> findByIsActiveTrueAndExpiryAfterAndExchange(Date now,String exchange);
-    @Query("SELECT i FROM Stock i WHERE i.isActive = true AND i.exchange = :exchange AND i.name IN (:type) AND (i.expiry IS NULL OR i.expiry BETWEEN :now AND :futureDate)")
-    Page<Stock> findByIsActiveTrueAndExchangeAndExpiryIsNullOrExpiryBetween(@Param("exchange") String exchange,
+    @Query("SELECT i FROM Stock i WHERE i.isActive = true AND i.exchange IN (:exchange) AND i.instrumentType IN (:type) AND (i.expiry IS NULL OR i.expiry BETWEEN :now AND :futureDate)")
+    Page<Stock> findByIsActiveTrueAndExchangeAndExpiryIsNullOrExpiryBetween(@Param("exchange") List<String> exchange,
                                                                             @Param("now") Date now,
                                                                             @Param("futureDate") Date futureDate,
                                                                             @Param("type") List<String> type,
                                                                             Pageable pageable);
 
-    @Query("SELECT i FROM Stock i WHERE i.isActive = true AND i.exchange = :exchange AND i.name IN (:type) AND i.tradingSymbol like %:symbol% AND (i.expiry IS NULL OR i.expiry BETWEEN :now AND :futureDate)")
+    @Query("SELECT i FROM Stock i WHERE i.isActive = true AND i.exchange IN (:exchange) AND i.instrumentType IN (:type) AND i.name like %:symbol% AND (i.expiry IS NULL OR i.expiry BETWEEN :now AND :futureDate)")
     Page<Stock> findByIsActiveTrueAndExchangeAndSymbolAnsExpiryIsNullOrExpiryBetween(
                                                                             @Param("symbol") String symbol,
-                                                                            @Param("exchange") String exchange,
+                                                                            @Param("exchange") List<String> exchange,
                                                                             @Param("now") Date now,
                                                                             @Param("futureDate") Date futureDate,
                                                                             @Param("type") List<String> type,
                                                                             Pageable pageable);
 
 
-    @Query("SELECT i FROM Stock i WHERE i.isActive = true AND i.tradingSymbol like %:symbol% AND (i.expiry IS NULL OR i.expiry BETWEEN :now AND :futureDate)")
+    @Query("SELECT i FROM Stock i WHERE i.isActive = true AND i.name like %:symbol% AND (i.expiry IS NULL OR i.expiry BETWEEN :now AND :futureDate)")
     Page<Stock> findByIsActiveTrueAndSymbolAndExpiryIsNullOrExpiryBetween(
                                                                          @Param("symbol") String symbol,
                                                                          @Param("now") Date now,

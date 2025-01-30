@@ -6,27 +6,36 @@ public enum ExchangeSegment {
     MCX_COMM {
         @Override
         public List<String> getInstrumentTypes() {
-            return List.of("FUTCOM","OPTFUT","FUTIDX");
+            return List.of("FUTCOM");
+        }
+
+        @Override
+        public List<String> getExchanges() {
+            return List.of("MCX");
         }
     },
     NSE_FNO {
         @Override
         public List<String> getInstrumentTypes() {
-            return List.of("FUTIDX","FUTSTK","OPTIDX","OPTSTK");
+            return List.of("FUTSTK");
+        }
+
+        @Override
+        public List<String> getExchanges() {
+            return List.of("NSE");
         }
     },
-    BSE_FNO {
+    OPTIONS {
         @Override
         public List<String> getInstrumentTypes() {
-            return List.of("FUTIDX","FUTSTK","OPTSTK","OPTIDX");
+            return List.of("OPTSTK","OPTIDX","OPTFUT");
         }
-    },
-    IDX_I {
+
         @Override
-        public List<String> getInstrumentTypes() {
-            return List.of("INDEX");
+        public List<String> getExchanges() {
+            return List.of("NSE","MCX");
         }
     };
-
     public abstract List<String> getInstrumentTypes();
+    public abstract List<String> getExchanges();
 }

@@ -13,6 +13,7 @@ import java.util.Date;
 public class StockDTO implements Serializable {
 
     private Long id;
+    private String name;
     private String tradingSymbol;
     private long instrumentToken;
     private String instrumentType;
