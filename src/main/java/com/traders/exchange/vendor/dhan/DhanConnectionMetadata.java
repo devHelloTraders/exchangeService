@@ -1,6 +1,7 @@
 package com.traders.exchange.vendor.dhan;
 
 import com.traders.common.model.InstrumentInfo;
+import com.traders.exchange.vendor.dto.SubscriptionType;
 import lombok.Getter;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketConnectionManager;
@@ -20,14 +21,14 @@ public class DhanConnectionMetadata {
     private BiConsumer<WebSocketSession, List<Map.Entry<Long, InstrumentInfo>>> subscribeFunction;
     private BiConsumer<WebSocketSession, List<Map.Entry<Long, InstrumentInfo>>> unSubscribeFunction;
     private final Map<Long, InstrumentInfo> instrumentDetails = new HashMap<>();
-    public final BiConsumer<Boolean,List<Long>> connectionTracker;
+    public final BiConsumer<SubscriptionType,List<Long>> connectionTracker;
 
-    public DhanConnectionMetadata(Integer connectionId, BiConsumer<Boolean,List<Long>> connectionTracker) {
+    public DhanConnectionMetadata(Integer connectionId, BiConsumer<SubscriptionType,List<Long>> connectionTracker) {
         this.connectionId = connectionId;
         this.connectionTracker = connectionTracker;
     }
 
-    public static DhanConnectionMetadata of(Integer connectionId,BiConsumer<Boolean,List<Long>> connectionTracker){
+    public static DhanConnectionMetadata of(Integer connectionId,BiConsumer<SubscriptionType,List<Long>> connectionTracker){
         return new DhanConnectionMetadata(connectionId,connectionTracker);
     }
 

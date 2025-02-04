@@ -1,6 +1,7 @@
 package com.traders.exchange.vendor.dhan;
 
 import com.traders.common.model.InstrumentInfo;
+import com.traders.exchange.vendor.dto.SubscriptionType;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +51,7 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
                 .mapToObj(i -> instrumentList.subList(i * MAX_INSTRUMENTS_PER_REQUEST, Math.min((i + 1) * MAX_INSTRUMENTS_PER_REQUEST, instrumentList.size())))
                 .forEach(batch -> {
                     metadata.addSubscription(batch.size());
-                    metadata.getConnectionTracker().accept(true,batch.stream().map(Map.Entry::getKey).toList());
+                    metadata.getConnectionTracker().accept(SubscriptionType.SUBSCRIBE,batch.stream().map(Map.Entry::getKey).toList());
                     subscribeMessage(REQUEST_CODE,session,batch);
                     log.info("Sent subscription request for batch: {}, total subscription for connection id : {} is {}",
                             batchNo.incrementAndGet(), connectionId, (batchNo.get() * MAX_INSTRUMENTS_PER_REQUEST));
@@ -64,7 +65,7 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
                 .mapToObj(i -> instrumentList.subList(i * MAX_INSTRUMENTS_PER_REQUEST, Math.min((i + 1) * MAX_INSTRUMENTS_PER_REQUEST, instrumentList.size())))
                 .forEach(batch -> {
                     metadata.addSubscription(-batch.size());
-                    metadata.getConnectionTracker().accept(false,batch.stream().map(Map.Entry::getKey).toList());
+                    metadata.getConnectionTracker().accept(SubscriptionType.UNSUBSCRIBE,batch.stream().map(Map.Entry::getKey).toList());
                     subscribeMessage(UNSUBSCRIBE_REQUEST_CODE,session,batch);
                     log.info("Sent subscription request for batch: {}, total subscription for connection id : {} is {}",
                             batchNo.incrementAndGet(), connectionId, (batchNo.get() * MAX_INSTRUMENTS_PER_REQUEST));
@@ -141,9 +142,9 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
     @Override
     public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status)  {
         log.info("Connection closed. {}",status);
-        if(status.getCode() ==1006){
+        if(status.getCode() ==1006 ){
             log.info("Connection closed restarting all connections. {}",status);
-            retryFunction.accept(Objects.requireNonNull(session.getUri()).toString());
+            retryFunction.accept(""+status.getCode());
         }
         metadata.removeSession();
         stopHeartbeat();

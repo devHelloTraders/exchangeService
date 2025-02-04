@@ -25,7 +25,7 @@ public class WebSocketEventListener {
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String sessionId = headerAccessor.getUser().getName();
-        log.info("WebSocket disconnected: {}" , sessionId);
+        log.debug("WebSocket disconnected: {}" , sessionId);
         subscriptionService.removeSession(sessionId);
     }
 
