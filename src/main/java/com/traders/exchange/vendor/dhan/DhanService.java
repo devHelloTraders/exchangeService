@@ -91,7 +91,7 @@ public class DhanService {
             }
 
             @Override
-            public String getExchange() {
+            public String getExchangeSegment() {
                 return instrument.getExchange();
             }
 

@@ -18,7 +18,7 @@ public class GeneralFunctions {
                 }
 
                 @Override
-                public String getExchange() {
+                public String getExchangeSegment() {
                     return info.getExchange();
                 }
 

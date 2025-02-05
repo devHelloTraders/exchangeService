@@ -156,7 +156,7 @@ public class DhanConnectionRegistry {
     private RequestBody getRequestBody(List<InstrumentInfo> instrumentInfos) {
         Map<String, List<Long>> groupedByExchange = instrumentInfos.stream()
                 .collect(Collectors.groupingBy(
-                        InstrumentInfo::getExchange,
+                        InstrumentInfo::getExchangeSegment,
                         Collectors.mapping(InstrumentInfo::getInstrumentToken, Collectors.toList())
                 ));
         ObjectMapper mapper = new ObjectMapper();

@@ -77,7 +77,7 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
         String instrumentListJson = instruments.stream()
                 .map(Map.Entry::getValue)
                 .map(instrument -> String.format("{\"ExchangeSegment\": \"%s\", \"SecurityId\": \"%s\"}",
-                        instrument.getExchange(),
+                        instrument.getExchangeSegment(),
                         instrument.getInstrumentToken()))
                 .collect(Collectors.joining(","));
 
