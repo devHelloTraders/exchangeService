@@ -139,14 +139,14 @@ config:
     tickerBatch : 3000
   dhanConfig:
     apiKey: 1105449365 #later encrypt both param
-    apiSecret: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzM4ODU4MzgzLCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiIiwiZGhhbkNsaWVudElkIjoiMTEwNTQ0OTM2NSJ9.gr1Ec1ruz8eQW27q84e48kpkM02MCQdDVtF5Ltbuxx6zzlW7Q2AiKgpHIXyV7va4wkuGNAjQxJDBOBmr8Kwt5Q
+    apiSecret: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzQxNDU5MjY3LCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiIiwiZGhhbkNsaWVudElkIjoiMTEwNTQ0OTM2NSJ9.XPoK-UMYu6EnYMte4DYUfhRYUL9Q8VQRjyA-xuKiDqVl_HNw-ViFzAI7cPsJD4nfwy2RC2GIK4PdFU50eCh9yQ
     supportedExchange: NFO,BFO,MCX
     instrumentLoadDelta: 8
     tickerBatch: 5000
     instrumentUrl: https://images.dhan.co/api-data/api-scrip-master.csv
     active: true
     apiCredentials:
-      - AEO069ay17EvdiStUU2UKTP51uVj6LNwYE1vjVjPYzC4PgZDRoFTVAWVJpqE7c3VTCW/PRyS5g1VimjWTXOMTnVxD8cazyetWAvqbGUv9rJK97Fesy88L+f/AT525OY31pdW7hz11awjK5eE9aYyfH0tjIlssBpOPhtoBnA9hMqBAUyqSt+3TPGOM2F1XfOl5P64v3Hkqv4RU8VixDAi0eQvKjZnozK+pbZZJS0LosgmyH4eAzPcF6w/iTGObTOAELrxufcFdUFBaT1RR6X5yQA5FKIRd9K6no+j0WuvQ8gKO4h5/HXozB3wf8uORFtq75UGhCFo+TUdHUAfo99UFJAUdfMq7t82kT5jkB95ZriYq0sqIewlhSg+nz7l3u80T5kiIYqIrdSYBJNtUVl0vg==
+      - AEO069ay17EvdiStUU2UKTP51uVj6LNwYE1vjVjPYzC4PgZDRoFTVAWVJpqE7c3VTCW/PRyS5g1VimjWTXOMTnVxD8cazyetWAvqbGUv9rJK97Fesy88L+f/AT525OY3cEbDMJoM/ffvkFETCmGsJX0tjIlssBpOPhtoBnA9hMqBAUyqSt+3TPGOM2F1XfOl5P64v3Hkqv4RU8VixDAi0eQvKjZnozK+pbZZJS0LosgmyH4eAzPcF6w/iTGObTOAYK1/NyWTlyiNvXCSJUe49R5lMzC+ItlMPNfVlM5LQLZpH1YTbx3byVT8IXxDzCCvd4kRJZx81GYGmXdc5TiuXAgX6tZfqsZgw4HhI4CYXHbOT9FAiz/gOYGlepZVnfSSkm1jx8j0LBkG1mcB1MGkag==
     allowedConnection: 5
     reservedConnection: 2
     allowedDaysRange: 120
