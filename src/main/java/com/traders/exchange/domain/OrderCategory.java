@@ -6,6 +6,8 @@ import com.traders.exchange.orders.TradeRequest;
 import com.traders.exchange.orders.TradeResponse;
 import com.traders.exchange.orders.service.OrderMatchService;
 
+import java.util.List;
+
 @JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum OrderCategory {
     MARKET {
@@ -24,12 +26,14 @@ public enum OrderCategory {
             return true;
         }
         @Override
-        public void postProcessOrder (long transactionId,TradeRequest request){
-            TradeResponse response = TradeResponse.builder()
-                    .transactionId(transactionId)
-                            .request(request)
-                                    .build();
-            SpringContextUtil.getBean(OrderMatchService.class).placeBuyOrder(response);
+        public void postProcessOrder (List<Long> transactionIds,TradeRequest request){
+            transactionIds.forEach(transactionId -> {
+                TradeResponse response = TradeResponse.builder()
+                        .transactionId(transactionId)
+                        .request(request)
+                        .build();
+                SpringContextUtil.getBean(OrderMatchService.class).placeBuyOrder(response);
+            });
         }
     },
     BRACKET_AT_MARKET {
@@ -58,17 +62,19 @@ public enum OrderCategory {
             return true;
         }
         @Override
-        public void postProcessOrder (long transactionId,TradeRequest request){
-            TradeResponse response = TradeResponse.builder()
-                    .transactionId(transactionId)
-                    .request(request)
-                    .build();
-            SpringContextUtil.getBean(OrderMatchService.class).placeSellOrder(response);
+        public void postProcessOrder (List<Long> transactionIds,TradeRequest request){
+            transactionIds.forEach(transactionId -> {
+                TradeResponse response = TradeResponse.builder()
+                        .transactionId(transactionId)
+                        .request(request)
+                        .build();
+                SpringContextUtil.getBean(OrderMatchService.class).placeSellOrder(response);
+            });
         }
     };
 
     public abstract boolean validateTradeRequest(TradeRequest tradeRequest);
-    public void postProcessOrder (long transactionId,TradeRequest request){
+    public void postProcessOrder (List<Long> transactionIds, TradeRequest request){
     }
     void validateLotSize(Double lotSize) {
         if (lotSize == null)

@@ -44,7 +44,7 @@ public class TransactionService {
 
     private TradeResponse mapToTradeResponse(Transaction transaction) {
         TradeRequest request = TradeRequest.builder()
-                .lotSize(transaction.getLotSize())
+                .lotSize(1.0) //TODO: do lot size calcuation based on qty.
                 .askedPrice(transaction.getPrice())
                 .stockId(transaction.getPortfolioStock().getStock().getInstrumentToken())
                 .targetPrice(transaction.getPrice())
