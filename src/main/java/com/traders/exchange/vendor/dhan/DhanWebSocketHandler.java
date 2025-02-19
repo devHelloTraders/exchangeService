@@ -38,7 +38,7 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
 
 
     @Override
-    public void afterConnectionEstablished(@NotNull WebSocketSession session) throws Exception {
+    public synchronized void afterConnectionEstablished(@NotNull WebSocketSession session) throws Exception {
         metadata.addSession(session);
         log.info("connection established sending subscription");
         sendSubscriptionMessages(session,new ArrayList<>(metadata.getInstrumentDetails().entrySet()));
@@ -89,7 +89,13 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
     private void subscribeMessage(Integer requestCode,WebSocketSession session, List<Map.Entry<Long, InstrumentInfo>> batch){
         String subscriptionMessage = createSubscriptionMessage(batch, requestCode);
         //String subscriptionMessage ="{\"RequestCode\": 21,\"InstrumentCount\": 5,\"InstrumentList\": [{\"ExchangeSegment\": \"NSE_EQ\", \"SecurityId\": \"1333\"},{\"ExchangeSegment\": \"BSE_EQ\", \"SecurityId\": \"532540\"},{\"ExchangeSegment\": \"NSE_EQ\", \"SecurityId\": \"19237\"},{\"ExchangeSegment\": \"IDX_I\", \"SecurityId\": \"25\"},{\"ExchangeSegment\": \"NSE_FNO\", \"SecurityId\": \"43972\"}]}";
-        session.sendMessage(new TextMessage(subscriptionMessage));
+        if(session != null)
+            session.sendMessage(new TextMessage(subscriptionMessage));
+        else{
+           log.info("Session is not active");
+           retryFunction.accept("Restarting socket");
+           log.info("started connection");
+        }
     }
 //    @Override
 //    protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) throws Exception {
@@ -133,10 +139,10 @@ public class DhanWebSocketHandler extends AbstractWebSocketHandler {
     }
 
     @Override
-    public void handleTransportError(@NotNull WebSocketSession session, Throwable exception) {
+    public void handleTransportError( WebSocketSession session, Throwable exception) {
        log.info("Error: {}" , exception.getMessage());
        stopHeartbeat();
-        retryFunction.accept(Objects.requireNonNull(session.getUri()).toString());
+        retryFunction.accept("");
     }
 
     @Override

@@ -116,6 +116,7 @@ public class DhanService {
         try (Response response = this.client.newCall(registry.getDhanAPIRestRequest(instrumentInfos)).execute()) {
             assert response.body() != null;
             responseJson=response.body().string();
+            response.body().close();
         }
         return DhanResponseHandler.handleRestResponse(responseJson);
     }
@@ -126,6 +127,7 @@ public class DhanService {
         try (Response response = this.client.newCall(registry.getDhanAPIRestRequest(instrumentInfos)).execute()) {
             assert response.body() != null;
             responseJson=response.body().string();
+            response.body().close();
         }
         return DhanResponseHandler.getExchangeData(responseJson);
     }
