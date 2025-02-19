@@ -73,7 +73,7 @@ public class DhanResource {
                 HttpStatus.OK);
     }
 
-    @Scheduled(cron = "0 00 9,16,20 * * *")
+    @Scheduled(cron = "0 00 9,16,20 * * *", zone = "Asia/Kolkata")
     @GetMapping("/admin/renewWebSocket")
     public ResponseEntity<Void> renewClientSession() {
         LOG.debug("request to Renew websocket session");

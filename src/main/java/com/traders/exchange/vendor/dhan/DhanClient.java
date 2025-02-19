@@ -114,19 +114,24 @@ public class DhanClient implements ExchangeClient {
     public void restartSession()  {
 
         synchronized (lock){
-            log.info("Restarting session 1");
-            LocalDateTime lastRun = redisService.getSessionObjectValue("lastRestartedTime");
-            if(lastRun!=null && lastRun.isAfter(LocalDateTime.now()
-                    .minusMinutes(1))){
-                log.info("Restarting session 2");
-                log(false,"socket Restarted at {} so skipping this time", lastRun);
-                return;
+            try{
+
+                log.info("Restarting session 1");
+                LocalDateTime lastRun = redisService.getSessionObjectValue("lastRestartedTime");
+                if(lastRun!=null && lastRun.isAfter(LocalDateTime.now()
+                        .minusMinutes(1))){
+                    log.info("Restarting session 2");
+                    log(false,"socket Restarted at {} so skipping this time", lastRun);
+                    return;
+                }
+                log.info("Restarting session 3");
+                dhanService.doCleanup();
+                getInstrumentsToSubScribe();
+                redisService.saveToSessionCacheWithTTL("lastRestartedTime",LocalDateTime.now(),getConfigProperties().getKiteConfig().getInstrumentLoadDelta(), TimeUnit.of(ChronoUnit.HOURS));
+                TimeUnit.SECONDS.sleep(1);
+            }catch (RuntimeException e){
+                log.info("Error while restarting session : "+ e);
             }
-            log.info("Restarting session 3");
-            dhanService.doCleanup();
-            getInstrumentsToSubScribe();
-            redisService.saveToSessionCacheWithTTL("lastRestartedTime",LocalDateTime.now(),getConfigProperties().getKiteConfig().getInstrumentLoadDelta(), TimeUnit.of(ChronoUnit.HOURS));
-            TimeUnit.SECONDS.sleep(1);
         }
     }
 }
