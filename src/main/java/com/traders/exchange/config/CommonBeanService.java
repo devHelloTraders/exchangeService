@@ -1,5 +1,6 @@
 package com.traders.exchange.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.traders.exchange.http.RetryInterceptor;
 import com.traders.exchange.properties.ConfigProperties;
 import okhttp3.OkHttpClient;
@@ -8,6 +9,7 @@ import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -54,5 +56,11 @@ public class CommonBeanService {
     public StandardWebSocketClient getWebSocketClient(){
         return new StandardWebSocketClient();
     }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+
 
 }

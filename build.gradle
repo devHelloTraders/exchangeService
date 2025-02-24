@@ -17,7 +17,7 @@ plugins {
 }
 
 group = 'com.traders.hello'
-version = '0.0.4-final'
+version = '1.0.1-snapshot'
 
 java {
 	sourceCompatibility = JavaVersion.VERSION_21
@@ -166,7 +166,8 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 
-	implementation 'com.traders.hello:commonService:0.0.1-SNAPSHOT'
+	implementation 'com.traders.hello:commonService:1.0.2-SNAPSHOT'
+	implementation 'com.traders.hello:exchangeClient:0.0.1-SNAPSHOT'
 	implementation 'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.21.0'
 
 	implementation 'io.opencensus:opencensus-impl:0.31.0'
@@ -191,6 +192,7 @@ dependencies {
 	implementation 'org.springframework.security:spring-security-messaging'
 
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
 }
 
 dependencyManagement {

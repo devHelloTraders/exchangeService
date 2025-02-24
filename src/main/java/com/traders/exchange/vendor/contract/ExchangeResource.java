@@ -1,4 +1,4 @@
-package com.traders.exchange.vendor.dhan;
+package com.traders.exchange.vendor.contract;
 
 import com.traders.common.appconfig.util.HeaderUtil;
 import com.traders.common.model.MarketDetailsRequest;
@@ -7,7 +7,6 @@ import com.traders.exchange.vendor.functions.GeneralFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,65 +19,52 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api")
-@ConditionalOnProperty(
-        name = "config.dhanConfig.active",
-        havingValue = "true",
-        matchIfMissing = true
-)
-public class DhanResource {
+
+public class ExchangeResource {
 
 
-    private static final Logger LOG = LoggerFactory.getLogger(DhanResource.class);
-    private final DhanClient dhanClient;
-    private final DhanService dhanService;
+    private static final Logger LOG = LoggerFactory.getLogger(ExchangeResource.class);
+    private final ExchangeClient exchangeClient;
     @Value("${config.clientApp.name}")
     private String applicationName;
 
-    public DhanResource(DhanClient dhanClient, DhanService dhanService) {
+    public ExchangeResource(ExchangeClient exchangeClient) {
 
-        this.dhanClient = dhanClient;
-        this.dhanService = dhanService;
+        this.exchangeClient = exchangeClient;
     }
 
     @GetMapping("/admin/renewsession")
-    public ResponseEntity<Void> renewSession(@RequestParam String request_token,@RequestParam String uuid) {
+    public ResponseEntity<Void> renewSession() {
         LOG.debug("REST request to renew session");
-        dhanClient.renewSession(request_token,uuid);
+        exchangeClient.renewClientSession();
         return new ResponseEntity<>(
                 HttpStatus.OK);
     }
 
-    @GetMapping("/getlogin")
-    public ResponseEntity<String> getLoginUrl() {
-        LOG.debug("REST request to renew session");
-        return new ResponseEntity<>(dhanClient.getLoginUrl(),
-                HeaderUtil.createAlert(applicationName,"Kite login url generated",""),
-                HttpStatus.OK);
-    }
+
     @GetMapping("/admin/startwebsocket")
     public ResponseEntity<Void> startWebSocket() {
         LOG.debug("REST request to Start websocket session");
-        dhanClient.getInstrumentsToSubScribe();
+        exchangeClient.renewClientSession();
         return new ResponseEntity<>(
                 HeaderUtil.createAlert(applicationName,"Websocket connection started",""),
                 HttpStatus.OK);
     }
 
-    @GetMapping("/admin/stopwebsocket")
-    public ResponseEntity<Void> stopWebScoket() {
-        LOG.debug("REST request to stop websocket session");
-        dhanService.stopWebSocket();
-        return new ResponseEntity<>(
-                HeaderUtil.createAlert(applicationName,"Websocket connection started",""),
-                HttpStatus.OK);
-    }
+//    @GetMapping("/admin/stopwebsocket")
+//    public ResponseEntity<Void> stopWebScoket() {
+//        LOG.debug("REST request to stop websocket session");
+//        dhanService.stopWebSocket();
+//        return new ResponseEntity<>(
+//                HeaderUtil.createAlert(applicationName,"Websocket connection started",""),
+//                HttpStatus.OK);
+//    }
 
     @Scheduled(cron = "0 00 9,16,20 * * *", zone = "Asia/Kolkata")
     @GetMapping("/admin/renewWebSocket")
     public ResponseEntity<Void> renewClientSession() {
         LOG.debug("request to Renew websocket session");
-        dhanService.doCleanup();
-        dhanClient.getInstrumentsToSubScribe();
+        exchangeClient.renewClientSession();
         return new ResponseEntity<>(
                 HeaderUtil.createAlert(applicationName,"Websocket connection started",""),
                 HttpStatus.OK);
@@ -86,9 +72,9 @@ public class DhanResource {
 
 
     @PostMapping("/machine/subscribe")
-    public ResponseEntity<Void> subscribeInstruments(@RequestBody MarketDetailsRequest dhanRequest) {
+    public ResponseEntity<Void> subscribeInstruments(@RequestBody MarketDetailsRequest request) {
         LOG.debug("REST request to subscribe websocket session");
-        dhanService.subscribeInstrument(dhanRequest);
+        exchangeClient.subscribe(request);
         return new ResponseEntity<>(
                 HeaderUtil.createAlert(applicationName,"Websocket connection started",""),
                 HttpStatus.OK);
@@ -96,11 +82,10 @@ public class DhanResource {
 
 
     @PostMapping("/machine/quotes")
-    public ResponseEntity<Map<String, MarketQuotes>> getQuotesFromMarketList(@RequestBody MarketDetailsRequest dhanRequest) {
+    public ResponseEntity<Map<String, MarketQuotes>> getQuotesFromMarketList(@RequestBody MarketDetailsRequest request) {
         LOG.debug("REST request to get Market quotes via Rest");
-        dhanService.subscribeInstrument(dhanRequest);
 
-        return new ResponseEntity<>(dhanService.getAllMarketQuotes(GeneralFunctions.getSubscribeInstrumentInfos(dhanRequest.getSubscribeInstrumentDetailsList())
+        return new ResponseEntity<>(exchangeClient.getQuotes(GeneralFunctions.getSubscribeInstrumentInfos(request.getSubscribeInstrumentDetailsList())
         ), HeaderUtil.createAlert(applicationName,"Send quotes response",""), HttpStatus.OK);
     }
 

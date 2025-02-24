@@ -1,13 +1,8 @@
 package com.traders.exchange.service;
 
-import com.traders.exchange.domain.OrderCategory;
-import com.traders.exchange.domain.OrderType;
-import com.traders.exchange.domain.Transaction;
-import com.traders.exchange.domain.TransactionStatus;
-import com.traders.exchange.orders.TradeRequest;
-import com.traders.exchange.orders.TradeResponse;
-import com.traders.exchange.orders.service.OrderMatchService;
+import com.traders.exchange.domain.*;
 import com.traders.exchange.repository.TransactionRepository;
+import com.traders.exchange.vendor.contract.ExchangeMediator;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +12,12 @@ import java.util.List;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final OrderMatchService orderMatchService;
+    private final ExchangeMediator exchangeMediator;
 
-    public TransactionService(TransactionRepository transactionRepository, OrderMatchService orderMatchService) {
+    public TransactionService(TransactionRepository transactionRepository, ExchangeMediator exchangeMediator) {
         this.transactionRepository = transactionRepository;
-        this.orderMatchService = orderMatchService;
-        loadPendingTransactions();
+       // loadPendingTransactions();
+        this.exchangeMediator = exchangeMediator;
     }
 
     @Scheduled(cron = "0 0 8 * * ?")
@@ -33,11 +28,17 @@ public class TransactionService {
         pendingTransactions.stream()
                 .map(this::mapToTradeResponse)
                 .forEach(transaction -> {
-                    if (transaction.request().orderType() == OrderType.BUY) {
-                             orderMatchService.placeBuyOrder(transaction);
-                     } else if (transaction.request().orderType() == OrderType.SELL) {
-                    orderMatchService.placeSellOrder(transaction);
-                }
+
+                    TransactionCommand command = transaction.request().orderType() == OrderType.BUY
+                            ? new TransactionCommand.PlaceBuy(transaction.request(), transaction.transactionId())
+                            : new TransactionCommand.PlaceSell(transaction.request(), transaction.transactionId());
+                    exchangeMediator.placeOrder(command);
+//                    if (transaction.request().orderType() == OrderType.BUY) {
+//                             orderMatchService.placeBuyOrder(transaction);
+//                             exchangeMediator
+//                     } else if (transaction.request().orderType() == OrderType.SELL) {
+//                    orderMatchService.placeSellOrder(transaction);
+//                }
         });
 
     }

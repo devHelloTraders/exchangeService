@@ -23,7 +23,6 @@ import java.util.List;
 @Getter
 @Setter
 public class ConfigProperties  extends com.traders.common.properties.ConfigProperties {
-
     private final KiteConfig kiteConfig = new KiteConfig();
     private final DhanConfig dhanConfig = new DhanConfig();
     private final StockConfig stockConfig = new StockConfig();

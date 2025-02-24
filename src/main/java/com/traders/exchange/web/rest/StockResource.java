@@ -1,11 +1,11 @@
 package com.traders.exchange.web.rest;
 
 import com.traders.common.appconfig.util.PaginationUtil;
+import com.traders.common.model.ExchangeSegment;
 import com.traders.exchange.domain.Stock;
 import com.traders.exchange.service.StockService;
 import com.traders.exchange.service.dto.StockDTO;
 import com.traders.exchange.service.dto.UnsubscribeInstrument;
-import com.traders.exchange.vendor.dhan.ExchangeSegment;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
@@ -49,7 +49,7 @@ public class StockResource {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<StockDTO>> searchStock(@RequestParam(required = false) ExchangeSegment exchange,@RequestParam String symbol,@RequestBody List<UnsubscribeInstrument> instruments,@ParameterObject Pageable pageable) {
+    public ResponseEntity<List<StockDTO>> searchStock(@RequestParam(required = false) ExchangeSegment exchange, @RequestParam String symbol, @RequestBody List<UnsubscribeInstrument> instruments, @ParameterObject Pageable pageable) {
         log.debug("REST request to search Stocks for given exchange {} and symbol {}" ,exchange, symbol);
         if (!PaginationUtil.onlyContainsAllowedProperties(pageable,ALLOWED_ORDERED_PROPERTIES)) {
             return ResponseEntity.badRequest().build();

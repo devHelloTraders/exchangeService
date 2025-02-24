@@ -1,6 +1,7 @@
 package com.traders.exchange.orders.controller;
 
-import com.traders.exchange.orders.TradeRequest;
+import com.traders.exchange.domain.TradeRequest;
+import com.traders.exchange.orders.service.OrderMatchingService;
 import com.traders.exchange.orders.service.TradeFeignService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class TradeController {
 
     private final TradeFeignService tradeService;
-
-    public TradeController(TradeFeignService tradeFeignService) {
+    private final OrderMatchingService orderMatchingService;
+    public TradeController(TradeFeignService tradeFeignService, OrderMatchingService orderMatchingService) {
         this.tradeService = tradeFeignService;
+        this.orderMatchingService = orderMatchingService;
     }
 
     @PostMapping("/add")
@@ -26,7 +28,7 @@ public class TradeController {
         }
         tradeRequest.orderCategory().validateTradeRequest(tradeRequest);
         var transactionID = tradeService.addTradeTransaction(tradeRequest);
-        tradeRequest.orderCategory().postProcessOrder(transactionID,tradeRequest);
+        tradeRequest.orderCategory().postProcessOrder(orderMatchingService,transactionID,tradeRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

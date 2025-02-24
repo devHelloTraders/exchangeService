@@ -1,9 +1,7 @@
 package com.traders.exchange.service;
 
-import com.traders.common.model.InstrumentInfo;
-import com.traders.common.model.MarketDetailsRequest;
-import com.traders.common.model.MarketQuotes;
-import com.traders.exchange.config.AsyncConfiguration;
+import com.traders.common.model.*;
+import com.traders.exchange.config.AsyncConfigurationScale;
 import com.traders.exchange.config.HikariConfiguration;
 import com.traders.exchange.domain.Stock;
 import com.traders.exchange.exception.AttentionAlertException;
@@ -13,9 +11,7 @@ import com.traders.exchange.repository.StockRepository;
 import com.traders.exchange.service.dto.StockDTO;
 import com.traders.exchange.service.dto.UnsubscribeInstrument;
 import com.traders.exchange.vendor.contract.ExchangeClient;
-import com.traders.exchange.vendor.dhan.DhanExchangeResolver;
-import com.traders.exchange.vendor.dhan.ExchangeSegment;
-import com.traders.exchange.vendor.dto.InstrumentDTO;
+import com.traders.exchange.vendor.contract.ExchangeMediator;
 import com.traders.exchange.vendor.functions.GeneralFunctions;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -42,12 +38,12 @@ public class StockService {
     //private final MapperS
     private final Converter<InstrumentDTO, Stock> instrumentStockConverter;
     private final ConfigProperties configProperties;
-    private final AsyncConfiguration asyncConfiguration;
+    private final AsyncConfigurationScale asyncConfigurationScale;
     private final HikariConfiguration hikariConfiguration;
     private final RedisService redisService;
     private final ModelMapper mapper;
-    private final ExchangeClient exchangeClient;
-    public StockService(ConfigProperties configProperties, StockRepository stockRepository, ModelMapper modelMapper, AsyncConfiguration asyncConfiguration, HikariConfiguration hikariConfiguration, RedisService redisService, ExchangeClient exchangeClient) {
+    private final ExchangeMediator exchangeMediator;
+    public StockService(ConfigProperties configProperties, StockRepository stockRepository, ModelMapper modelMapper, AsyncConfigurationScale asyncConfigurationScale, HikariConfiguration hikariConfiguration, RedisService redisService, ExchangeMediator exchangeClient) {
         this.stockRepository = stockRepository;
         this.configProperties =configProperties;
         this.instrumentStockConverter   = instrument -> {
@@ -62,11 +58,11 @@ public class StockService {
             stock.setExchangeSegment(instrument.getExchangeSegment());
             return stock;
         };
-        this.asyncConfiguration = asyncConfiguration;
+        this.asyncConfigurationScale = asyncConfigurationScale;
         this.hikariConfiguration = hikariConfiguration;
         this.redisService = redisService;
         this.mapper = modelMapper;
-        this.exchangeClient = exchangeClient;
+        this.exchangeMediator = exchangeClient;
     }
     static int temp =0;
 
@@ -76,15 +72,12 @@ public class StockService {
             throw new AttentionAlertException("Instruments is empty", "Stock Service","Instrument is not loaded correctly please have a look.");
         }
 
-        asyncConfiguration.scaleUpExecutors();
+        asyncConfigurationScale.scaleUpExecutors();
         hikariConfiguration.increaseConnectionPool();
         var stockList =instruments.stream()
                 .filter(Objects::nonNull)
                 .filter(instrument -> instrument.getName() !=null)
-                .map(instrumentDTO -> {
-                    instrumentDTO.setExchangeSegment(DhanExchangeResolver.getCategory(instrumentDTO));
-                    return instrumentDTO;
-                }).filter(instrumentDTO -> !instrumentDTO.getExchangeSegment().equalsIgnoreCase("UNKNOWN_CATEGORY"))
+                .filter(instrumentDTO -> !instrumentDTO.getExchangeSegment().equalsIgnoreCase("UNKNOWN_CATEGORY"))
                 .map(instrumentStockConverter::convert)
                 .toList();
         final int batchSize = configProperties.getStockConfig().getBatchSize();
@@ -96,10 +89,10 @@ public class StockService {
                     // Process each stock asynchronously
                     saveStocks(batch);
                     saveToRedis(batch);
-                }, asyncConfiguration.getAsyncExecutor())).toList();
+                }, asyncConfigurationScale.getAsyncExecutor())).toList();
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenRun(()->{
-            asyncConfiguration.scaleDownExecutors();
+            asyncConfigurationScale.scaleDownExecutors();
             hikariConfiguration.reduceConnectionPool();
             log.debug("Scaling down connections");
         }) ;
@@ -163,7 +156,7 @@ public class StockService {
             unsubscribeInstruments.forEach(unsub-> request.removeInstrument(MarketDetailsRequest.InstrumentDetails.of(unsub.getInstrumentId(),unsub.getExchange(),"")));
 
         var marketResponse = getQuotesFromMarketList(GeneralFunctions.getSubscribeInstrumentInfos(request.getSubscribeInstrumentDetailsList()));
-        exchangeClient.subscribeInstrument(request);
+        exchangeMediator.subscribe(request);
         return stockList.stream().map(stock->{
             StockDTO stockDTO = new StockDTO();
             mapper.map(stock,stockDTO);
@@ -176,7 +169,7 @@ public class StockService {
     }
 
     public Map<String,MarketQuotes> getQuotesFromMarketList(List<InstrumentInfo> instrumentInfos){
-        var marketQuotes = exchangeClient.getAllMarketQuoteViaRest(instrumentInfos);
+        var marketQuotes = exchangeMediator.getQuotes(instrumentInfos);
         if(marketQuotes == null || marketQuotes.isEmpty()){
             throw new BadRequestAlertException("Invalid Stock Request","StockService","Please pass Correct stock id");
         }
@@ -186,7 +179,7 @@ public class StockService {
     public List<StockDTO> mapQuotesToDTO(List<StockDTO> stockList){
         MarketDetailsRequest request =new MarketDetailsRequest();
         stockList.forEach(stock-> request.addInstrument(MarketDetailsRequest.InstrumentDetails.of(stock.getInstrumentToken(),stock.getExchange(),stock.getTradingSymbol())));
-        exchangeClient.subscribeInstrument(request);
+        exchangeMediator.subscribe(request);
         var marketResponse = getQuotesFromMarketList(GeneralFunctions.getSubscribeInstrumentInfos(request.getSubscribeInstrumentDetailsList()));
         stockList.forEach(stockDTO->{
             MarketQuotes quotes = marketResponse.get(String.valueOf(stockDTO.getInstrumentToken()));
@@ -195,4 +188,7 @@ public class StockService {
         });
         return stockList;
     }
+
+
+
 }

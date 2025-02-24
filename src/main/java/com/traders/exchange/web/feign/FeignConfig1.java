@@ -10,11 +10,11 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Configuration
-public class FeignConfig {
+public class FeignConfig1 {
 
     private final ConfigProperties configProperties;
 
-    public FeignConfig(ConfigProperties configProperties) {
+    public FeignConfig1(ConfigProperties configProperties) {
         this.configProperties = configProperties;
     }
 
