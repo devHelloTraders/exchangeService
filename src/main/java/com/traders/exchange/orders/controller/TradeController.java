@@ -1,6 +1,7 @@
 package com.traders.exchange.orders.controller;
 
 import com.traders.exchange.domain.TradeRequest;
+import com.traders.exchange.domain.TradeResponse;
 import com.traders.exchange.orders.service.OrderMatchingService;
 import com.traders.exchange.orders.service.TradeFeignService;
 import org.springframework.http.HttpStatus;
@@ -27,8 +28,13 @@ public class TradeController {
             return ResponseEntity.badRequest().build();
         }
         tradeRequest.orderCategory().validateTradeRequest(tradeRequest);
-        var transactionID = tradeService.addTradeTransaction(tradeRequest);
-        tradeRequest.orderCategory().postProcessOrder(orderMatchingService,transactionID,tradeRequest);
+        var transactions = tradeService.addTradeTransaction(tradeRequest);
+        transactions.forEach(txn->tradeRequest.orderCategory().postProcessOrder(orderMatchingService,
+                TradeResponse.builder()
+                        .request(tradeRequest)
+                        .transactionId(txn.getTransactionId()).instrumentId(txn.getInstrumentId())
+                        .build())
+        );
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

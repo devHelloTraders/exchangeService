@@ -16,8 +16,9 @@ public class TransactionService {
 
     public TransactionService(TransactionRepository transactionRepository, ExchangeMediator exchangeMediator) {
         this.transactionRepository = transactionRepository;
-       // loadPendingTransactions();
         this.exchangeMediator = exchangeMediator;
+        loadPendingTransactions();
+
     }
 
     @Scheduled(cron = "0 0 8 * * ?")
@@ -30,8 +31,8 @@ public class TransactionService {
                 .forEach(transaction -> {
 
                     TransactionCommand command = transaction.request().orderType() == OrderType.BUY
-                            ? new TransactionCommand.PlaceBuy(transaction.request(), transaction.transactionId())
-                            : new TransactionCommand.PlaceSell(transaction.request(), transaction.transactionId());
+                            ? new TransactionCommand.PlaceBuy(transaction)
+                            : new TransactionCommand.PlaceSell(transaction);
                     exchangeMediator.placeOrder(command);
 //                    if (transaction.request().orderType() == OrderType.BUY) {
 //                             orderMatchService.placeBuyOrder(transaction);
@@ -56,6 +57,7 @@ public class TransactionService {
         return TradeResponse.builder()
                 .transactionId(transaction.getId())
                 .request(request)
+                .instrumentId(String.valueOf(transaction.getPortfolioStock().getStock().getInstrumentToken()))
                 .build();
     }
 
